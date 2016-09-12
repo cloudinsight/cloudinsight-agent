@@ -1,0 +1,9 @@
+build/*
+/cloudinsight-agent
+cloudinsight-agent.conf
+conf.d/*.yaml
+*.log
+*.swp
+.idea
+*~
+*#
