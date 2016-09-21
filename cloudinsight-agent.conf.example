@@ -8,17 +8,6 @@ ci_url = "https://dc-cloud.oneapm.com"
 # You can find it at https://cloud.oneapm.com/#/settings
 license_key = ""
 
-# If you need a proxy to connect to the Internet, provide the settings here
-# proxy_host = "my-proxy.com"
-# proxy_port = 3128
-# proxy_user = "user"
-# proxy_password = "password"
-# To be used with some proxys that return a 302 which make curl switch from POST to GET
-# proxy_forbid_method_switch = false
-
-# If you run the agent behind haproxy, you might want to set this to yes
-# skip_ssl_validation = false
-
 # Force the hostname to whatever you want.
 # hostname = "mymachine.mydomain"
 
@@ -31,17 +20,6 @@ license_key = ""
 # Change port the Agent is listening to
 # listen_port = 10010
 
-# Enable Agent Developer Mode
-# Agent Developer Mode collects and sends more fine-grained metrics about agent and check performance
-# developer_mode = false
-# In developer mode, the number of runs to be included in a single collector profile
-# collector_profile_interval = 20
-
-# Allow non-local traffic to this Agent
-# This is required when using this Agent as a proxy for other Agents that might not have an internet connection
-# non_local_traffic = false
-
-
 # ========================================================================== #
 # Logging
 # ========================================================================== #
@@ -49,12 +27,4 @@ license_key = ""
 [logging]
 log_level = "info"
 
-collector_log_file = "/var/log/cloudinsight-agent/collector.log"
-forwarder_log_file = "/var/log/cloudinsight-agent/forwarder.log"
-statsd_log_file = "/var/log/cloudinsight-agent/statsd.log"
-
-# if syslog is enabled but a host and port are not set, a local domain socket
-# connection will be attempted
-log_to_syslog = true
-# syslog_host = localhost
-# syslog_port = 514
+log_file = "/var/log/cloudinsight-agent/cloudinsight-agent.log"

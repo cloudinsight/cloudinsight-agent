@@ -13,15 +13,34 @@ import (
 	"github.com/startover/cloudinsight-agent/common/plugin"
 )
 
+// VERSION XXX
+const VERSION = "0.0.1"
+
 // NewConfig XXX
-func NewConfig() *Config {
+func NewConfig() (*Config, error) {
 	c := &Config{
 		GlobalConfig: &GlobalConfig{
 			CiURL: "https://dc-cloud.oneapm.com",
 		},
 	}
 
-	return c
+	confPath, err := getDefaultConfigPath()
+	if err != nil {
+		return nil, err
+	}
+
+	err = c.LoadConfig(confPath)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to load the config file: %s", err)
+	}
+
+	if c.GlobalConfig.LicenseKey == "" {
+		// configLogger.Errorf("LicenseKey is empty.")
+		log.Error("LicenseKey is empty.")
+		return nil, fmt.Errorf("LicenseKey must be specified in the config file.")
+	}
+
+	return c, nil
 }
 
 // Config represents cloudinsight-agent's configuration file.
@@ -35,25 +54,25 @@ type Config struct {
 type GlobalConfig struct {
 	CiURL      string `toml:"ci_url"`
 	LicenseKey string `toml:"license_key"`
+	Hostname   string `toml:"hostname"`
 }
 
 // LoggingConfig XXX
 type LoggingConfig struct {
-	LogLevel         string `toml:"log_level"`
-	CollectorLogFile string `toml:"collector_log_file"`
-	ForwarderLogFile string `toml:"forwarder_log_file"`
-	StatsdLogFile    string `toml:"statsd_log_file"`
-	LogToSyslog      bool   `toml:"log_to_syslog"`
+	LogLevel string `toml:"log_level"`
+	LogFile  string `toml:"log_file"`
 }
 
 // Try to find a default config file at these locations (in order):
-//   1. /etc/cloudinsight-agent/cloudinsight-agent.conf
-//   2. $HOME/.cloudinsight-agent/cloudinsight-agent.conf
+//   1. $CWD/cloudinsight-agent.conf
+//   2. /etc/cloudinsight-agent/cloudinsight-agent.conf
+//   3. $HOME/.cloudinsight-agent/cloudinsight-agent.conf
 //
 func getDefaultConfigPath() (string, error) {
+	file := "cloudinsight-agent.conf"
 	etcfile := "/etc/cloudinsight-agent/cloudinsight-agent.conf"
 	homefile := os.ExpandEnv("$HOME/.cloudinsight-agent/cloudinsight-agent.conf")
-	for _, path := range []string{etcfile, homefile} {
+	for _, path := range []string{file, etcfile, homefile} {
 		if _, err := os.Stat(path); err == nil {
 			log.Infof("Using config file: %s", path)
 			return path, nil
@@ -86,13 +105,11 @@ func (c *Config) LoadConfig(confPath string) error {
 		return err
 	}
 	for _, pattern := range patterns {
-		log.Info(filepath.Join(root, "collector/conf.d", pattern))
 		m, _ := filepath.Glob(filepath.Join(root, "collector/conf.d", pattern))
 		files = append(files, m...)
 	}
 
-	for i, file := range files {
-		log.Infoln(i, file)
+	for _, file := range files {
 		pluginConfig, err := plugin.LoadConfig(file)
 		if err != nil {
 			log.Errorf("Failed to parse Plugin Config %s: %s", file, err)
@@ -111,26 +128,6 @@ func (c *Config) LoadConfig(confPath string) error {
 	return nil
 }
 
-//InitializeLogging XXX
-func (c *Config) InitializeLogging() error {
-	err := log.SetLevel(c.LoggingConfig.LogLevel)
-	if err != nil {
-		log.Errorf("Failed to parse log_level: %s", err)
-		return fmt.Errorf("Failed to parse log_level: %s", err)
-	}
-
-	return nil
-}
-
-// PluginNames returns a list of strings of the configured Plugins.
-func (c *Config) PluginNames() []string {
-	var name []string
-	for _, plugin := range c.Plugins {
-		name = append(name, plugin.Name)
-	}
-	return name
-}
-
 func (c *Config) addPlugin(name string, pluginConfig *plugin.Config) error {
 	checker, ok := collector.Plugins[name]
 	if !ok {
@@ -143,5 +140,48 @@ func (c *Config) addPlugin(name string, pluginConfig *plugin.Config) error {
 		Config: pluginConfig,
 	}
 	c.Plugins = append(c.Plugins, rp)
+	return nil
+}
+
+// PluginNames returns a list of strings of the configured Plugins.
+func (c *Config) PluginNames() []string {
+	var name []string
+	for _, plugin := range c.Plugins {
+		name = append(name, plugin.Name)
+	}
+	return name
+}
+
+// GetHostname XXX
+func (c *Config) GetHostname() string {
+	hostname := c.GlobalConfig.Hostname
+	if hostname != "" {
+		return hostname
+	}
+
+	var err error
+	hostname, err = os.Hostname()
+	if err != nil {
+		log.Error(err)
+	}
+	return hostname
+}
+
+//InitializeLogging XXX
+func (c *Config) InitializeLogging() error {
+	log.Infoln("Initialize log...")
+	err := log.SetLevel(c.LoggingConfig.LogLevel)
+	if err != nil {
+		return fmt.Errorf("Failed to parse log_level: %s", err)
+	}
+
+	logFile := c.LoggingConfig.LogFile
+
+	f, err := os.OpenFile(logFile, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0644)
+	if err != nil {
+		return err
+	}
+	log.SetOutput(f)
+
 	return nil
 }

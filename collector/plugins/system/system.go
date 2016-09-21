@@ -283,8 +283,8 @@ func (s *SystemStats) collectDiskIOMetrics(agg metric.Aggregator) error {
 		fields := map[string]interface{}{
 			"r_s":     io.ReadCount,
 			"w_s":     io.WriteCount,
-			"rkb_s":   io.ReadBytes / KB,
-			"wkb_s":   io.WriteBytes / KB,
+			"rkb_s":   float64(io.ReadBytes) / KB,
+			"wkb_s":   float64(io.WriteBytes) / KB,
 			"r_await": io.ReadTime,
 			"w_await": io.WriteTime,
 			"await":   await,

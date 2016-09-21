@@ -1,4 +1,4 @@
-package forwarder
+package agent
 
 import "github.com/startover/cloudinsight-agent/common/metric"
 
