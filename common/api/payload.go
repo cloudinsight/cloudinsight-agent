@@ -2,30 +2,26 @@ package api
 
 import (
 	"encoding/hex"
+	"net"
+	"os"
 	"time"
 
 	uuid "github.com/nu7hatch/gouuid"
 	"github.com/prometheus/common/log"
 	"github.com/startover/cloudinsight-agent/common/config"
-	"github.com/startover/cloudinsight-agent/common/gohai"
 )
 
 // NewPayload XXX
-func NewPayload(conf *config.Config, metrics []interface{}) *Payload {
-	return &Payload{
+func NewPayload(conf *config.Config) *Payload {
+	p := &Payload{
 		AgentVersion:        config.VERSION,
 		CollectionTimestamp: time.Now().Unix(),
 		InternalHostname:    conf.GetHostname(),
 		LicenseKey:          conf.GlobalConfig.LicenseKey,
-		Metrics:             metrics,
 		UUID:                getUUID(),
-		Gohai:               gohai.GetMetadata(),
-		Processes: map[string]interface{}{
-			"processes":  gohai.GetProcesses(),
-			"licenseKey": conf.GlobalConfig.LicenseKey,
-			"host":       "test-golang",
-		},
 	}
+
+	return p
 }
 
 // Payload XXX
@@ -43,11 +39,25 @@ type Payload struct {
 	Events              map[string]interface{} `json:"events,omitempty"`
 }
 
+func getMacAddr() string {
+	interfaces, _ := net.Interfaces()
+	for _, inter := range interfaces {
+		if inter.HardwareAddr != nil {
+			return inter.HardwareAddr.String()
+		}
+	}
+
+	return ""
+}
+
 func getUUID() string {
-	u5, err := uuid.NewV5(uuid.NamespaceDNS, []byte("cloudinsight"))
+	hostname, _ := os.Hostname()
+	addr := getMacAddr()
+	u5, err := uuid.NewV5(uuid.NamespaceDNS, []byte(hostname+addr))
 	if err != nil {
 		log.Error(err)
 		return ""
 	}
+
 	return hex.EncodeToString(u5[:])
 }

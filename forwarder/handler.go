@@ -19,7 +19,7 @@ func NewHandler(config *config.Config) (*Handler, error) {
 		return nil, fmt.Errorf("LicenseKey is required for cloudinsight. You can find it at https://cloud.oneapm.com/#/settings")
 	}
 
-	api := api.NewAPI(config.GlobalConfig.CiURL, config.GlobalConfig.LicenseKey, 5*time.Second)
+	api := api.NewAPI(config.GlobalConfig.CiURL, config.GlobalConfig.LicenseKey, 10*time.Second)
 	c := &Handler{
 		api: api,
 	}

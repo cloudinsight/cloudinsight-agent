@@ -138,7 +138,7 @@ func (s *SystemStats) collectCPUMetrics(agg metric.Aggregator) error {
 		// Add in percentage
 		if len(s.cpu.lastStats) == 0 {
 			// If it's the 1st gather, can't get CPU Usage stats yet
-			continue
+			break
 		}
 		lastCts := s.cpu.lastStats[i]
 		lastTotal := totalCPUTime(lastCts)

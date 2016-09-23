@@ -1,20 +1,24 @@
 package agent
 
 import (
+	"strings"
 	"time"
 
 	"github.com/startover/cloudinsight-agent/common/api"
 	"github.com/startover/cloudinsight-agent/common/config"
+	"github.com/startover/cloudinsight-agent/common/gohai"
 	"github.com/startover/cloudinsight-agent/common/log"
 	"github.com/startover/cloudinsight-agent/common/metric"
 )
 
 const (
 	// DefaultMetricBatchSize is default size of metrics batch size.
-	DefaultMetricBatchSize = 1000
+	DefaultMetricBatchSize = 2000
 
 	// DefaultMetricBufferLimit is default number of metrics kept. It should be a multiple of batch size.
 	DefaultMetricBufferLimit = 10000
+
+	metadataUpdateInterval = 4 * time.Hour
 )
 
 // Collector contains the output configuration
@@ -26,11 +30,13 @@ type Collector struct {
 
 	metrics     *Buffer
 	failMetrics *Buffer
+	start       time.Time
+	emitCount   int
 }
 
 // NewCollector XXX
 func NewCollector(config *config.Config) *Collector {
-	api := api.NewAPI("http://127.0.0.1:9999", config.GlobalConfig.LicenseKey, time.Second*5)
+	api := api.NewAPI("http://127.0.0.1:9999", config.GlobalConfig.LicenseKey, 5*time.Second)
 	bufferLimit := DefaultMetricBufferLimit
 	batchSize := DefaultMetricBatchSize
 
@@ -41,12 +47,13 @@ func NewCollector(config *config.Config) *Collector {
 		failMetrics:       NewBuffer(bufferLimit),
 		MetricBufferLimit: bufferLimit,
 		MetricBatchSize:   batchSize,
+		start:             time.Now(),
 	}
 	return c
 }
 
-// AddMetric adds a metric to the output. This function can also write cached
-// points if FlushBufferWhenFull is true.
+// AddMetric adds a metric to the Collector. It will post metrics to Forwarder
+// when the metrics size has reached the MetricBatchSize.
 func (c *Collector) AddMetric(metric metric.Metric) {
 	c.metrics.Add(metric)
 	if c.metrics.Len() == c.MetricBatchSize {
@@ -58,7 +65,7 @@ func (c *Collector) AddMetric(metric metric.Metric) {
 	}
 }
 
-// Emit writes all cached points to this output.
+// Emit writes all cached metrics to Forwarder.
 func (c *Collector) Emit() error {
 	log.Infof("Buffer fullness: %d / %d metrics. "+
 		"Total gathered metrics: %d. Total dropped metrics: %d.",
@@ -67,22 +74,23 @@ func (c *Collector) Emit() error {
 		c.metrics.Total(),
 		c.metrics.Drops()+c.failMetrics.Drops())
 
+	c.emitCount++
 	var err error
 	if !c.failMetrics.IsEmpty() {
 		bufLen := c.failMetrics.Len()
-		// how many batches of failed writes we need to write.
+		// how many batches of failed metrics we need to post.
 		nBatches := bufLen/c.MetricBatchSize + 1
 		batchSize := c.MetricBatchSize
 
 		for i := 0; i < nBatches; i++ {
 			// If it's the last batch, only grab the metrics that have not had
-			// a write attempt already (this is primarily to preserve order).
+			// a post attempt already (this is primarily to preserve order).
 			if i == nBatches-1 {
 				batchSize = bufLen % c.MetricBatchSize
 			}
 			batch := c.failMetrics.Batch(batchSize)
-			// If we've already failed previous writes, don't bother trying to
-			// write to this output again. We are not exiting the loop just so
+			// If we've already failed previous Emit, don't bother trying to
+			// post to Forwarder again. We are not exiting the loop just so
 			// that we can rotate the metrics to preserve order.
 			if err == nil {
 				err = c.post(batch)
@@ -94,7 +102,6 @@ func (c *Collector) Emit() error {
 	}
 
 	batch := c.metrics.Batch(c.MetricBatchSize)
-	// see comment above about not trying to write to an already failed output.
 	// if c.failMetrics is empty then err will always be nil at this point.
 	if err == nil {
 		err = c.post(batch)
@@ -117,7 +124,36 @@ func (c *Collector) post(metrics []metric.Metric) error {
 	}
 
 	start := time.Now()
-	payload := api.NewPayload(c.config, formattedMetrics)
+	payload := api.NewPayload(c.config)
+	payload.Metrics = formattedMetrics
+
+	if c.shouldSendMetadata() {
+		log.Info("We should send metadata.")
+		payload.Gohai = gohai.GetMetadata()
+
+		hostTags := strings.Split(c.config.GlobalConfig.Tags, ",")
+		for i, tag := range hostTags {
+			hostTags[i] = strings.TrimSpace(tag)
+		}
+
+		payload.HostTags = map[string]interface{}{
+			"system": hostTags,
+		}
+	}
+
+	processes := gohai.GetProcesses()
+	if c.isFirstRun() {
+		// When first run, we will retrieve processes to get cpuPercent.
+		time.Sleep(1 * time.Second)
+		processes = gohai.GetProcesses()
+	}
+
+	payload.Processes = map[string]interface{}{
+		"processes":  processes,
+		"licenseKey": c.config.GlobalConfig.LicenseKey,
+		"host":       c.config.GetHostname(),
+	}
+
 	err := c.api.Post(payload)
 	elapsed := time.Since(start)
 	if err == nil {
@@ -133,4 +169,21 @@ func (c *Collector) format(metrics []metric.Metric) []interface{} {
 		m[i] = metric.Format()
 	}
 	return m
+}
+
+func (c *Collector) isFirstRun() bool {
+	return c.emitCount <= 1
+}
+
+func (c *Collector) shouldSendMetadata() bool {
+	if c.isFirstRun() {
+		return true
+	}
+
+	if time.Since(c.start) >= metadataUpdateInterval {
+		c.start = time.Now()
+		return true
+	}
+
+	return false
 }

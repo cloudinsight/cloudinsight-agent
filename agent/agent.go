@@ -143,7 +143,7 @@ func (a *Agent) emitter(shutdown chan struct{}, metricC chan metric.Metric) erro
 		case <-ticker.C:
 			a.emit()
 		case m := <-metricC:
-			log.Infoln(m)
+			// log.Infoln(m)
 			a.collector.AddMetric(m)
 		}
 	}

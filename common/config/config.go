@@ -55,6 +55,7 @@ type GlobalConfig struct {
 	CiURL      string `toml:"ci_url"`
 	LicenseKey string `toml:"license_key"`
 	Hostname   string `toml:"hostname"`
+	Tags       string `toml:"tags"`
 }
 
 // LoggingConfig XXX
