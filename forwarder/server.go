@@ -34,14 +34,13 @@ func Start(shutdown chan struct{}, conf *config.Config) {
 	})
 
 	s := &http.Server{
-		Addr:           ":9999",
 		Handler:        nil,
 		ReadTimeout:    10 * time.Second,
 		WriteTimeout:   10 * time.Second,
 		MaxHeaderBytes: 1 << 20,
 	}
 
-	l, e := net.Listen("tcp", ":9999")
+	l, e := net.Listen("tcp", conf.GetForwarderAddr())
 	if e != nil {
 		log.Error(e)
 	}

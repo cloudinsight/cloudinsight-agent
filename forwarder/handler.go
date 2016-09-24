@@ -14,12 +14,12 @@ type Handler struct {
 }
 
 // NewHandler XXX
-func NewHandler(config *config.Config) (*Handler, error) {
-	if config.GlobalConfig.LicenseKey == "" {
+func NewHandler(conf *config.Config) (*Handler, error) {
+	if conf.GlobalConfig.LicenseKey == "" {
 		return nil, fmt.Errorf("LicenseKey is required for cloudinsight. You can find it at https://cloud.oneapm.com/#/settings")
 	}
 
-	api := api.NewAPI(config.GlobalConfig.CiURL, config.GlobalConfig.LicenseKey, 10*time.Second)
+	api := api.NewAPI(conf.GlobalConfig.CiURL, conf.GlobalConfig.LicenseKey, 10*time.Second)
 	c := &Handler{
 		api: api,
 	}

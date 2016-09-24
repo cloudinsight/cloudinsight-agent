@@ -28,11 +28,9 @@ func NewSystemStats(conf plugin.InitConfig) plugin.Plugin {
 	if val, ok := conf["percpu"].(bool); ok {
 		percpu = val
 	}
-	fmt.Println("percpu:", percpu)
 	if val, ok := conf["totalcpu"].(bool); ok {
 		totalcpu = val
 	}
-	fmt.Println("totalcpu:", totalcpu)
 
 	return &SystemStats{
 		ps: &systemPS{},

@@ -35,14 +35,14 @@ type Collector struct {
 }
 
 // NewCollector XXX
-func NewCollector(config *config.Config) *Collector {
-	api := api.NewAPI("http://127.0.0.1:9999", config.GlobalConfig.LicenseKey, 5*time.Second)
+func NewCollector(conf *config.Config) *Collector {
+	api := api.NewAPI(conf.GetForwarderAddrWithScheme(), conf.GlobalConfig.LicenseKey, 5*time.Second)
 	bufferLimit := DefaultMetricBufferLimit
 	batchSize := DefaultMetricBatchSize
 
 	c := &Collector{
 		api:               api,
-		config:            config,
+		config:            conf,
 		metrics:           NewBuffer(batchSize),
 		failMetrics:       NewBuffer(bufferLimit),
 		MetricBufferLimit: bufferLimit,
@@ -131,13 +131,15 @@ func (c *Collector) post(metrics []metric.Metric) error {
 		log.Info("We should send metadata.")
 		payload.Gohai = gohai.GetMetadata()
 
-		hostTags := strings.Split(c.config.GlobalConfig.Tags, ",")
-		for i, tag := range hostTags {
-			hostTags[i] = strings.TrimSpace(tag)
-		}
+		if c.config.GlobalConfig.Tags != "" {
+			hostTags := strings.Split(c.config.GlobalConfig.Tags, ",")
+			for i, tag := range hostTags {
+				hostTags[i] = strings.TrimSpace(tag)
+			}
 
-		payload.HostTags = map[string]interface{}{
-			"system": hostTags,
+			payload.HostTags = map[string]interface{}{
+				"system": hostTags,
+			}
 		}
 	}
 

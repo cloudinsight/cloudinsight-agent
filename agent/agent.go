@@ -18,11 +18,11 @@ type Agent struct {
 }
 
 // NewAgent returns an Agent struct based off the given Config
-func NewAgent(config *config.Config) (*Agent, error) {
-	collector := NewCollector(config)
+func NewAgent(conf *config.Config) (*Agent, error) {
+	collector := NewCollector(conf)
 
 	a := &Agent{
-		Config:    config,
+		Config:    conf,
 		collector: collector,
 	}
 

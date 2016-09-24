@@ -56,6 +56,8 @@ type GlobalConfig struct {
 	LicenseKey string `toml:"license_key"`
 	Hostname   string `toml:"hostname"`
 	Tags       string `toml:"tags"`
+	BindHost   string `toml:"bind_host"`
+	ListenPort int    `toml:"listen_port"`
 }
 
 // LoggingConfig XXX
@@ -151,6 +153,28 @@ func (c *Config) PluginNames() []string {
 		name = append(name, plugin.Name)
 	}
 	return name
+}
+
+// GetForwarderAddr XXX
+func (c *Config) GetForwarderAddr() string {
+	hostAddr := "127.0.0.1"
+	port := 10010
+
+	if c.GlobalConfig.BindHost != "" {
+		hostAddr = c.GlobalConfig.BindHost
+	}
+
+	if c.GlobalConfig.ListenPort != 0 {
+		port = c.GlobalConfig.ListenPort
+	}
+
+	log.Infof("%s:%d", hostAddr, port)
+	return fmt.Sprintf("%s:%d", hostAddr, port)
+}
+
+// GetForwarderAddrWithScheme XXX
+func (c *Config) GetForwarderAddrWithScheme() string {
+	return fmt.Sprintf("http://%s", c.GetForwarderAddr())
 }
 
 // GetHostname XXX
