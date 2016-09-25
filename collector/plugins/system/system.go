@@ -3,8 +3,10 @@ package system
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/shirou/gopsutil/cpu"
+	"github.com/shirou/gopsutil/disk"
 	"github.com/shirou/gopsutil/host"
 	"github.com/shirou/gopsutil/load"
 	"github.com/startover/cloudinsight-agent/collector"
@@ -52,14 +54,15 @@ type SystemStats struct {
 // CPUStats XXX
 type CPUStats struct {
 	lastStats []cpu.TimesStat
-
-	PerCPU   bool
-	TotalCPU bool
+	PerCPU    bool
+	TotalCPU  bool
 }
 
 // DiskIOStats XXX
 type DiskIOStats struct {
-	Devices []string
+	lastIOStats        map[string]disk.IOCountersStat
+	lastCollectionTime int64
+	Devices            []string
 }
 
 func (s *SystemStats) Check(agg metric.Aggregator, instance plugin.Instance) error {
@@ -135,7 +138,7 @@ func (s *SystemStats) collectCPUMetrics(agg metric.Aggregator) error {
 
 		// Add in percentage
 		if len(s.cpu.lastStats) == 0 {
-			// If it's the 1st gather, can't get CPU Usage stats yet
+			// If it's the 1st check, can't get CPU Usage stats yet
 			break
 		}
 		lastCts := s.cpu.lastStats[i]
@@ -262,21 +265,13 @@ func (s *SystemStats) collectDiskIOMetrics(agg metric.Aggregator) error {
 		}
 	}
 
-	for _, io := range diskio {
+	for name, io := range diskio {
 		_, member := devices[io.Name]
 		if restrictDevices && !member {
 			continue
 		}
 		var tags []string
 		tags = append(tags, "device:"+io.Name)
-		var await float64
-		if io.ReadCount == 0 {
-			await = float64(io.WriteTime)
-		} else if io.WriteCount == 0 {
-			await = float64(io.ReadTime)
-		} else {
-			await = float64(io.ReadTime*io.ReadCount+io.WriteTime*io.WriteCount) / float64(io.ReadCount+io.WriteCount)
-		}
 
 		fields := map[string]interface{}{
 			"r_s":     io.ReadCount,
@@ -285,11 +280,40 @@ func (s *SystemStats) collectDiskIOMetrics(agg metric.Aggregator) error {
 			"wkb_s":   float64(io.WriteBytes) / KB,
 			"r_await": io.ReadTime,
 			"w_await": io.WriteTime,
-			"await":   await,
 			"util":    io.IoTime,
 		}
 		agg.AddMetrics("rate", "system.io", fields, tags, "")
+
+		if len(s.io.lastIOStats) == 0 {
+			// If it's the 1st check, can't get ioawait yet
+			continue
+		}
+
+		// Compute ioawait
+		lastStats := s.io.lastIOStats[name]
+		timeDelta := time.Now().Unix() - s.io.lastCollectionTime
+		ioReadTimeDelta := float64(io.ReadTime-lastStats.ReadTime) / float64(timeDelta)
+		ioWriteTimeDelta := float64(io.WriteTime-lastStats.WriteTime) / float64(timeDelta)
+		ioReadCountDelta := float64(io.ReadCount-lastStats.ReadCount) / float64(timeDelta)
+		ioWriteCountDelta := float64(io.WriteCount-lastStats.WriteCount) / float64(timeDelta)
+
+		var ioawait float64
+		if ioReadCountDelta == 0 {
+			ioawait = ioWriteTimeDelta
+		} else if ioWriteCountDelta == 0 {
+			ioawait = ioReadTimeDelta
+		} else {
+			ioawait = float64(ioReadTimeDelta*ioReadCountDelta+ioWriteTimeDelta*ioWriteCountDelta) / float64(ioReadCountDelta+ioWriteCountDelta)
+		}
+
+		agg.Add("gauge", metric.Metric{
+			Name:  "system.io.await",
+			Value: ioawait,
+		})
 	}
+
+	s.io.lastIOStats = diskio
+	s.io.lastCollectionTime = time.Now().Unix()
 
 	return nil
 }

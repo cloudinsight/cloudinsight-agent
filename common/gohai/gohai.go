@@ -1,8 +1,6 @@
 package gohai
 
 import (
-	"math"
-
 	"github.com/DataDog/gohai/cpu"
 	"github.com/DataDog/gohai/filesystem"
 	"github.com/DataDog/gohai/memory"
@@ -10,6 +8,7 @@ import (
 	"github.com/DataDog/gohai/platform"
 	"github.com/shirou/gopsutil/process"
 	"github.com/startover/cloudinsight-agent/common/log"
+	"github.com/startover/cloudinsight-agent/common/util"
 )
 
 // Collector XXX
@@ -53,29 +52,11 @@ type processField [11]interface{}
 func getInactivePids(pids []int32, cachedPids []int32) []int32 {
 	var complement []int32
 	for _, pid := range cachedPids {
-		if !contains(pids, pid) {
+		if !util.Contains(pids, pid) {
 			complement = append(complement, pid)
 		}
 	}
 	return complement
-}
-
-func contains(slice []int32, item int32) bool {
-	for _, val := range slice {
-		if val == item {
-			return true
-		}
-	}
-	return false
-}
-
-func cast(num float64) int {
-	return int(num + math.Copysign(0.5, num))
-}
-
-func round(num float64, precision int) float64 {
-	output := math.Pow(10, float64(precision))
-	return float64(cast(num*output)) / output
 }
 
 // GetProcesses XXX
@@ -147,8 +128,8 @@ func GetProcesses() []interface{} {
 		processField := processField{
 			username,
 			pid,
-			round(cpuPercent, 2),
-			round(float64(memPercent), 2),
+			util.Round(cpuPercent, 2),
+			util.Round(float64(memPercent), 2),
 			memInfo.VMS,
 			memInfo.RSS,
 			nil,

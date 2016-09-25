@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/startover/cloudinsight-agent/common/log"
+	"github.com/startover/cloudinsight-agent/common/util"
 )
 
 // Generator XXX
@@ -273,8 +274,8 @@ func (h *Histogram) Flush(timestamp int64, interval float64) []Metric {
 	aggregators := map[string]float64{
 		"min":    h.samples[0],
 		"max":    h.samples[length-1],
-		"median": h.samples[h.round(float64(length/2-1))],
-		"avg":    h.sum(h.samples) / float64(length),
+		"median": h.samples[util.Cast(float64(length/2-1))],
+		"avg":    util.Sum(h.samples) / float64(length),
 		"count":  float64(h.count) / interval,
 	}
 
@@ -297,31 +298,13 @@ func (h *Histogram) Flush(timestamp int64, interval float64) []Metric {
 	for _, p := range h.percentiles {
 		m := h.Metric
 		m.Name = fmt.Sprintf("%s.%spercentile", m.Name, strconv.Itoa(int(p*float64(100))))
-		m.Value = h.samples[h.round(p*float64(length)-1)]
+		m.Value = h.samples[util.Cast(p*float64(length)-1)]
 		m.Timestamp = timestamp
 		m.Type = "gauge"
 		metrics = append(metrics, m)
 	}
 
 	return metrics
-}
-
-func (h *Histogram) sum(nums []float64) float64 {
-	var total float64
-	for _, num := range nums {
-		total += num
-	}
-	return total
-}
-
-func (h *Histogram) round(f float64) int {
-	if f < -0.5 {
-		return int(f - 0.5)
-	}
-	if f > 0.5 {
-		return int(f + 0.5)
-	}
-	return 0
 }
 
 // Set XXX

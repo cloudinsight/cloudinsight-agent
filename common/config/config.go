@@ -168,7 +168,6 @@ func (c *Config) GetForwarderAddr() string {
 		port = c.GlobalConfig.ListenPort
 	}
 
-	log.Infof("%s:%d", hostAddr, port)
 	return fmt.Sprintf("%s:%d", hostAddr, port)
 }
 
