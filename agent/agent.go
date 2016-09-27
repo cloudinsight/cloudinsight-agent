@@ -13,20 +13,20 @@ import (
 
 // Agent runs agent and collects data based on the given config
 type Agent struct {
-	Config    *config.Config
+	conf      *config.Config
 	collector *Collector
 }
 
 // NewAgent returns an Agent struct based off the given Config
-func NewAgent(conf *config.Config) (*Agent, error) {
+func NewAgent(conf *config.Config) *Agent {
 	collector := NewCollector(conf)
 
 	a := &Agent{
-		Config:    conf,
+		conf:      conf,
 		collector: collector,
 	}
 
-	return a, nil
+	return a
 }
 
 func panicRecover(plugin *plugin.RunningPlugin) {
@@ -51,7 +51,7 @@ func (a *Agent) collect(
 	ticker := time.NewTicker(interval)
 	defer ticker.Stop()
 
-	agg := NewAggregator(plugin.Config, metricC)
+	agg := NewAggregator(metricC, a.conf)
 
 	for {
 		collectWithTimeout(shutdown, plugin, agg, interval)
@@ -110,48 +110,10 @@ func (a *Agent) Test() error {
 	return nil
 }
 
-// emit sends the collected metrics to forwarder API
-func (a *Agent) emit() {
-	var wg sync.WaitGroup
-
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-		err := a.collector.Emit()
-		if err != nil {
-			log.Infof("Error occured when writing to Forwarder API: %s\n", err.Error())
-		}
-	}()
-
-	wg.Wait()
-}
-
-// emitter monitors the metrics Plugin channel and emits on the minimum interval
-func (a *Agent) emitter(shutdown chan struct{}, metricC chan metric.Metric) error {
-	// Inelegant, but this sleep is to allow the collect threads to run, so that
-	// the emitter will emit after metrics are collected.
-	time.Sleep(200 * time.Millisecond)
-
-	ticker := time.NewTicker(30 * time.Second)
-
-	for {
-		select {
-		case <-shutdown:
-			log.Infoln("Hang on, emitting any cached metrics before shutdown")
-			a.emit()
-			return nil
-		case <-ticker.C:
-			a.emit()
-		case m := <-metricC:
-			// log.Infoln(m)
-			a.collector.AddMetric(m)
-		}
-	}
-}
-
 // Run runs the agent daemon, collecting every Interval
 func (a *Agent) Run(shutdown chan struct{}) error {
 	var wg sync.WaitGroup
+	interval := 30 * time.Second
 
 	// channel shared between all Plugin threads for collecting metrics
 	metricC := make(chan metric.Metric, 10000)
@@ -159,20 +121,20 @@ func (a *Agent) Run(shutdown chan struct{}) error {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		if err := a.emitter(shutdown, metricC); err != nil {
-			log.Infof("emitter routine failed, exiting: %s\n", err.Error())
+		if err := a.collector.Run(shutdown, metricC, interval); err != nil {
+			log.Infof("Collector routine failed, exiting: %s\n", err.Error())
 			close(shutdown)
 		}
 	}()
 
-	wg.Add(len(a.Config.Plugins))
-	for _, p := range a.Config.Plugins {
+	wg.Add(len(a.conf.Plugins))
+	for _, p := range a.conf.Plugins {
 		go func(rp *plugin.RunningPlugin, interval time.Duration) {
 			defer wg.Done()
 			if err := a.collect(shutdown, rp, interval, metricC); err != nil {
 				log.Info(err.Error())
 			}
-		}(p, 30*time.Second)
+		}(p, interval)
 	}
 
 	wg.Wait()

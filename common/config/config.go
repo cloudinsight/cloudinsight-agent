@@ -58,6 +58,7 @@ type GlobalConfig struct {
 	Tags       string `toml:"tags"`
 	BindHost   string `toml:"bind_host"`
 	ListenPort int    `toml:"listen_port"`
+	StatsdPort int    `toml:"statsd_port"`
 }
 
 // LoggingConfig XXX
@@ -174,6 +175,22 @@ func (c *Config) GetForwarderAddr() string {
 // GetForwarderAddrWithScheme XXX
 func (c *Config) GetForwarderAddrWithScheme() string {
 	return fmt.Sprintf("http://%s", c.GetForwarderAddr())
+}
+
+// GetStatsdAddr XXX
+func (c *Config) GetStatsdAddr() string {
+	hostAddr := "127.0.0.1"
+	port := 8251
+
+	if c.GlobalConfig.BindHost != "" {
+		hostAddr = c.GlobalConfig.BindHost
+	}
+
+	if c.GlobalConfig.StatsdPort != 0 {
+		port = c.GlobalConfig.StatsdPort
+	}
+
+	return fmt.Sprintf("%s:%d", hostAddr, port)
 }
 
 // GetHostname XXX

@@ -1,16 +1,45 @@
 package main
 
 import (
+	"fmt"
 	"os"
 	"os/signal"
+	"strings"
 	"sync"
 	"syscall"
 
 	"github.com/startover/cloudinsight-agent/agent"
+	"github.com/startover/cloudinsight-agent/collector"
+	_ "github.com/startover/cloudinsight-agent/collector/plugins"
 	"github.com/startover/cloudinsight-agent/common/config"
 	"github.com/startover/cloudinsight-agent/common/log"
 	"github.com/startover/cloudinsight-agent/forwarder"
+	"github.com/startover/cloudinsight-agent/statsd"
 )
+
+func startAgent(shutdown chan struct{}, conf *config.Config) {
+	ag := agent.NewAgent(conf)
+	err := ag.Run(shutdown)
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
+func startForwarder(shutdown chan struct{}, conf *config.Config) {
+	f := forwarder.NewForwarder(conf)
+	err := f.Run(shutdown)
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
+func startStatsd(shutdown chan struct{}, conf *config.Config) {
+	s := statsd.NewStatsd(conf)
+	err := s.Run(shutdown)
+	if err != nil {
+		log.Fatal(err)
+	}
+}
 
 func main() {
 	reload := make(chan bool, 1)
@@ -46,16 +75,31 @@ func main() {
 			log.Fatal(err)
 		}
 
+		fmt.Println("Available Plugins:")
+		for k := range collector.Plugins {
+			fmt.Printf("  %s\n", k)
+		}
+
+		log.Infof("Loaded plugins: %s", strings.Join(conf.PluginNames(), " "))
+
 		var wg sync.WaitGroup
-		wg.Add(2)
+		wg.Add(3)
 		go func() {
 			defer wg.Done()
-			agent.Start(shutdown, conf)
+
+			startAgent(shutdown, conf)
 		}()
 
 		go func() {
 			defer wg.Done()
-			forwarder.Start(shutdown, conf)
+
+			startForwarder(shutdown, conf)
+		}()
+
+		go func() {
+			defer wg.Done()
+
+			startStatsd(shutdown, conf)
 		}()
 		wg.Wait()
 	}

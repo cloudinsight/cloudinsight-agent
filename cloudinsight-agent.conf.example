@@ -20,6 +20,10 @@ license_key = ""
 # Change port the Agent is listening to
 # listen_port = 10010
 
+# Change port the Statsd is listening to
+# statsd_port = 8251
+
+
 # ========================================================================== #
 # Logging
 # ========================================================================== #

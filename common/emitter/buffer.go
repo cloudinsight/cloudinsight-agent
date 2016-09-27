@@ -1,4 +1,4 @@
-package agent
+package emitter
 
 import "github.com/startover/cloudinsight-agent/common/metric"
 

@@ -1,36 +1,45 @@
 package forwarder
 
 import (
-	"encoding/json"
 	"net"
 	"net/http"
 	"time"
 
-	_ "github.com/startover/cloudinsight-agent/collector/plugins"
 	"github.com/startover/cloudinsight-agent/common/api"
 	"github.com/startover/cloudinsight-agent/common/config"
 	"github.com/startover/cloudinsight-agent/common/log"
 )
 
-func Start(shutdown chan struct{}, conf *config.Config) {
-	handler, err := NewHandler(conf)
-	if err != nil {
-		log.Fatal(err)
+// NewForwarder XXX
+func NewForwarder(conf *config.Config) *Forwarder {
+	api := api.NewAPI(conf.GlobalConfig.CiURL, conf.GlobalConfig.LicenseKey, 10*time.Second)
+	return &Forwarder{
+		api:  api,
+		conf: conf,
 	}
+}
 
+// Forwarder XXX
+type Forwarder struct {
+	api  *api.API
+	conf *config.Config
+}
+
+// Run XXX
+func (f *Forwarder) Run(shutdown chan struct{}) error {
 	http.HandleFunc("/infrastructure/metrics", func(w http.ResponseWriter, r *http.Request) {
-		var p api.Payload
-		err := json.NewDecoder(r.Body).Decode(&p)
+		err := f.api.Post(f.api.GetURL("metrics"), r.Body)
 		if err != nil {
-			log.Errorf("Error occured when decoding Payload. %s", err)
-			return
+			log.Errorf("Error occured when posting Payload. %s", err)
 		}
-		// log.Infoln(p)
+	})
 
-		err = handler.Post(&p)
-		if err != nil {
-			log.Error(err)
-		}
+	http.HandleFunc("/infrastructure/series", func(w http.ResponseWriter, r *http.Request) {
+		// TODO
+	})
+
+	http.HandleFunc("/infrastructure/service_checks", func(w http.ResponseWriter, r *http.Request) {
+		// TODO
 	})
 
 	s := &http.Server{
@@ -40,9 +49,9 @@ func Start(shutdown chan struct{}, conf *config.Config) {
 		MaxHeaderBytes: 1 << 20,
 	}
 
-	l, e := net.Listen("tcp", conf.GetForwarderAddr())
-	if e != nil {
-		log.Error(e)
+	l, err := net.Listen("tcp", f.conf.GetForwarderAddr())
+	if err != nil {
+		return err
 	}
 
 	go func() {
@@ -53,10 +62,11 @@ func Start(shutdown chan struct{}, conf *config.Config) {
 
 	select {
 	case <-shutdown:
-		log.Infof("Server thread exit")
+		log.Infof("Forwarder server thread exit")
 		if err := l.Close(); err != nil {
-			log.Fatal(err)
+			return err
 		}
-		return
 	}
+
+	return nil
 }

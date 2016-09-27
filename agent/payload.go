@@ -1,4 +1,4 @@
-package api
+package agent
 
 import (
 	"encoding/hex"
@@ -7,8 +7,8 @@ import (
 	"time"
 
 	uuid "github.com/nu7hatch/gouuid"
-	"github.com/prometheus/common/log"
 	"github.com/startover/cloudinsight-agent/common/config"
+	"github.com/startover/cloudinsight-agent/common/log"
 )
 
 // NewPayload XXX
