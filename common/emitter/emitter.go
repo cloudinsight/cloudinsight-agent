@@ -107,7 +107,7 @@ func (e *Emitter) addMetric(metric metric.Metric) {
 // flush posts all cached metrics to Forwarder.
 func (e *Emitter) flush() error {
 	if e.shouldLog() {
-		log.Infof("%s Flushing #%d. Buffer fullness: %d / %d metrics. "+
+		log.Infof("%s flushing #%d. Buffer fullness: %d / %d metrics. "+
 			"Total gathered metrics: %d. Total dropped metrics: %d.",
 			e.name,
 			e.emitCount,
@@ -116,7 +116,7 @@ func (e *Emitter) flush() error {
 			e.metrics.Total(),
 			e.metrics.Drops()+e.failMetrics.Drops())
 	} else {
-		log.Debugf("%s Flushing #%d. Buffer fullness: %d / %d metrics. "+
+		log.Debugf("%s flushing #%d. Buffer fullness: %d / %d metrics. "+
 			"Total gathered metrics: %d. Total dropped metrics: %d.",
 			e.name,
 			e.emitCount,
@@ -127,7 +127,7 @@ func (e *Emitter) flush() error {
 	}
 
 	if e.emitCount == FlushLoggingInitial {
-		log.Infof("First flushes done, next flushes will be logged every %d flushes.", FlushLoggingPeriod)
+		log.Infof("%s first flushes done, next flushes will be logged every %d flushes.", e.name, FlushLoggingPeriod)
 	}
 
 	var err error

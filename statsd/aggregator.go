@@ -5,14 +5,14 @@ import (
 	"github.com/startover/cloudinsight-agent/common/metric"
 )
 
-const interval = 5
+const interval = 10
 
 // NewAggregator XXX
 func NewAggregator(
 	metrics chan metric.Metric,
 	conf *config.Config,
 ) metric.Aggregator {
-	return metric.NewAggregator(metrics, interval, conf.GetHostname(), formatter, 30)
+	return metric.NewAggregator(metrics, interval, conf.GetHostname(), formatter, interval)
 }
 
 // Format metrics coming from the Aggregator. Will look like:

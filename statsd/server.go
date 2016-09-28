@@ -47,7 +47,7 @@ type Statsd struct {
 // Run XXX
 func (s *Statsd) Run(shutdown chan struct{}) error {
 	var wg sync.WaitGroup
-	interval := 5 * time.Second
+	interval := 10 * time.Second
 
 	// channel shared between all Plugin threads for collecting metrics
 	metricC := make(chan metric.Metric, 10000)

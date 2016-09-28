@@ -1,4 +1,5 @@
 build/*
+bin/*
 /cloudinsight-agent
 cloudinsight-agent.conf
 conf.d/*.yaml
