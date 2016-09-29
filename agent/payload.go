@@ -6,9 +6,9 @@ import (
 	"os"
 	"time"
 
-	uuid "github.com/nu7hatch/gouuid"
 	"github.com/cloudinsight/cloudinsight-agent/common/config"
 	"github.com/cloudinsight/cloudinsight-agent/common/log"
+	uuid "github.com/nu7hatch/gouuid"
 )
 
 // NewPayload XXX
