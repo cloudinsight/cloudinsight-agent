@@ -63,7 +63,7 @@ func (s *Statsd) Run(shutdown chan struct{}) error {
 	go func() {
 		defer wg.Done()
 		if err := s.reporter.Run(shutdown, metricC, interval); err != nil {
-			log.Infof("Reporter routine failed, exiting: %s\n", err.Error())
+			log.Infof("Reporter routine failed, exiting: %s", err.Error())
 			close(shutdown)
 		}
 	}()

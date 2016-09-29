@@ -45,10 +45,10 @@
 			"revisionTime": "2016-07-29T13:36:48Z"
 		},
 		{
-			"checksumSHA1": "QCAKzv0affIi7mlcGqPR8S3w6s0=",
+			"checksumSHA1": "2avCvSn0XonfApKKuTMyiQmk7s0=",
 			"path": "github.com/Sirupsen/logrus",
-			"revision": "219c8cb75c258c552e999735be6df753ffc7afdc",
-			"revisionTime": "2016-02-24T21:10:30Z"
+			"revision": "3ec0642a7fb6488f65b06f9040adc67e3990296a",
+			"revisionTime": "2016-08-29T20:23:21Z"
 		},
 		{
 			"checksumSHA1": "K3IjadQQFTDSMib8tbdhpUCdvKY=",
@@ -143,4 +143,3 @@
 	],
 	"rootPath": "github.com/cloudinsight/cloudinsight-agent"
 }
-

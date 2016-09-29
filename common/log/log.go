@@ -221,8 +221,14 @@ func (l logger) sourced() *logrus.Entry {
 	return l.entry.WithField("source", fmt.Sprintf("%s:%d", file, line))
 }
 
-var origLogger = logrus.New()
-var baseLogger = logger{entry: logrus.NewEntry(origLogger)}
+var origLogger *logrus.Logger
+var baseLogger logger
+
+func init() {
+	origLogger = logrus.New()
+	origLogger.Formatter = &logrus.TextFormatter{FullTimestamp: true, DisableColors: true}
+	baseLogger = logger{entry: logrus.NewEntry(origLogger)}
+}
 
 func Base() Logger {
 	return baseLogger

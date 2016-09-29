@@ -122,7 +122,7 @@ func (agg *aggregator) Add(metricType string, m Metric) {
 		var err error
 		generator, err = NewGenerator(metricType, m, agg.formatter)
 		if err != nil {
-			log.Errorf("Error adding metric [%v]: %s\n", m, err.Error())
+			log.Errorf("Error adding metric [%v]: %s", m, err.Error())
 			return
 		}
 		agg.context[ctx] = generator
@@ -165,7 +165,7 @@ func parsePacket(
 ) (*Metric, error) {
 	bits := strings.SplitN(packet, ":", 2)
 	if len(bits) != 2 {
-		log.Infof("Unable to parse metric: %s\n", packet)
+		log.Infof("Unable to parse metric: %s", packet)
 		return nil, fmt.Errorf("Error Parsing statsd packet")
 	}
 
@@ -176,13 +176,13 @@ func parsePacket(
 	// Validate splitting the bit on "|"
 	pipesplit := strings.Split(metadata, "|")
 	if len(pipesplit) < 2 {
-		log.Infof("Unable to parse metric: %s\n", packet)
+		log.Infof("Unable to parse metric: %s", packet)
 		return nil, fmt.Errorf("Error parsing statsd packet")
 	}
 
 	value, err := strconv.ParseFloat(pipesplit[0], 64)
 	if err != nil {
-		return nil, fmt.Errorf("Error parsing value from packet %s: %s\n", packet, err.Error())
+		return nil, fmt.Errorf("Error parsing value from packet %s: %s", packet, err.Error())
 	}
 	m.Value = value
 
@@ -206,7 +206,7 @@ func parsePacket(
 			samplerate, err := strconv.ParseFloat(segment[1:], 64)
 			if err != nil || (samplerate < 0 || samplerate > 1) {
 				return nil, fmt.Errorf("Error: parsing sample rate, %s, it must be in format like: "+
-					"@0.1, @0.5, etc. Ignoring sample rate for packet: %s\n", err.Error(), packet)
+					"@0.1, @0.5, etc. Ignoring sample rate for packet: %s", err.Error(), packet)
 			}
 
 			// sample rate successfully parsed

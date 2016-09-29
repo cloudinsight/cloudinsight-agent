@@ -76,7 +76,7 @@ func (c *Collector) Post(metrics []interface{}) error {
 	err := c.api.SubmitMetrics(payload)
 	elapsed := time.Since(start)
 	if err == nil {
-		log.Infof("Write batch of %d metrics in %s\n",
+		log.Infof("Post batch of %d metrics in %s",
 			len(metrics), elapsed)
 	}
 	return err

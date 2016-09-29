@@ -33,7 +33,7 @@ func panicRecover(plugin *plugin.RunningPlugin) {
 	if err := recover(); err != nil {
 		trace := make([]byte, 2048)
 		runtime.Stack(trace, true)
-		log.Infof("FATAL: Plugin [%s] panicked: %s, Stack:\n%s\n",
+		log.Infof("FATAL: Plugin [%s] panicked: %s, Stack:\n%s",
 			plugin.Name, err, trace)
 	}
 }
@@ -122,7 +122,7 @@ func (a *Agent) Run(shutdown chan struct{}) error {
 	go func() {
 		defer wg.Done()
 		if err := a.collector.Run(shutdown, metricC, interval); err != nil {
-			log.Infof("Collector routine failed, exiting: %s\n", err.Error())
+			log.Infof("Collector routine failed, exiting: %s", err.Error())
 			close(shutdown)
 		}
 	}()

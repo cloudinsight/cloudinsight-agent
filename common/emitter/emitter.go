@@ -84,7 +84,7 @@ func (e *Emitter) emit() {
 		defer wg.Done()
 		err := e.flush()
 		if err != nil {
-			log.Infof("Error occured when posting to Forwarder API: %s\n", err.Error())
+			log.Infof("Error occured when posting to Forwarder API: %s", err.Error())
 		}
 	}()
 

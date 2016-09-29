@@ -43,7 +43,7 @@ func (r *Reporter) Post(metrics []interface{}) error {
 	err := r.api.SubmitMetrics(&payload)
 	elapsed := time.Since(start)
 	if err == nil {
-		log.Infof("Write batch of %d metrics in %s\n",
+		log.Infof("Write batch of %d metrics in %s",
 			len(metrics), elapsed)
 	}
 	return err

@@ -57,7 +57,7 @@ func main() {
 					close(shutdown)
 				}
 				if sig == syscall.SIGHUP {
-					log.Infof("Reloading config...\n")
+					log.Infof("Reloading config...")
 					<-reload
 					reload <- true
 					close(shutdown)
