@@ -1,6 +1,6 @@
 package emitter
 
-import "github.com/startover/cloudinsight-agent/common/metric"
+import "github.com/cloudinsight/cloudinsight-agent/common/metric"
 
 // Buffer is an object for storing metrics in a circular buffer.
 type Buffer struct {

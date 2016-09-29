@@ -3,9 +3,9 @@ package system
 import (
 	"fmt"
 
-	"github.com/startover/cloudinsight-agent/collector"
-	"github.com/startover/cloudinsight-agent/common/metric"
-	"github.com/startover/cloudinsight-agent/common/plugin"
+	"github.com/cloudinsight/cloudinsight-agent/collector"
+	"github.com/cloudinsight/cloudinsight-agent/common/metric"
+	"github.com/cloudinsight/cloudinsight-agent/common/plugin"
 )
 
 func NewDiskStats(conf plugin.InitConfig) plugin.Plugin {

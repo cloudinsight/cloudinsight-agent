@@ -3,7 +3,7 @@ package plugin
 import (
 	"io/ioutil"
 
-	"github.com/startover/cloudinsight-agent/common/metric"
+	"github.com/cloudinsight/cloudinsight-agent/common/metric"
 
 	yaml "gopkg.in/yaml.v2"
 )

@@ -5,10 +5,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/startover/cloudinsight-agent/common/config"
-	"github.com/startover/cloudinsight-agent/common/log"
-	"github.com/startover/cloudinsight-agent/common/metric"
-	"github.com/startover/cloudinsight-agent/common/plugin"
+	"github.com/cloudinsight/cloudinsight-agent/common/config"
+	"github.com/cloudinsight/cloudinsight-agent/common/log"
+	"github.com/cloudinsight/cloudinsight-agent/common/metric"
+	"github.com/cloudinsight/cloudinsight-agent/common/plugin"
 )
 
 // Agent runs agent and collects data based on the given config

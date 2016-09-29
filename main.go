@@ -8,13 +8,13 @@ import (
 	"sync"
 	"syscall"
 
-	"github.com/startover/cloudinsight-agent/agent"
-	"github.com/startover/cloudinsight-agent/collector"
-	_ "github.com/startover/cloudinsight-agent/collector/plugins"
-	"github.com/startover/cloudinsight-agent/common/config"
-	"github.com/startover/cloudinsight-agent/common/log"
-	"github.com/startover/cloudinsight-agent/forwarder"
-	"github.com/startover/cloudinsight-agent/statsd"
+	"github.com/cloudinsight/cloudinsight-agent/agent"
+	"github.com/cloudinsight/cloudinsight-agent/collector"
+	_ "github.com/cloudinsight/cloudinsight-agent/collector/plugins"
+	"github.com/cloudinsight/cloudinsight-agent/common/config"
+	"github.com/cloudinsight/cloudinsight-agent/common/log"
+	"github.com/cloudinsight/cloudinsight-agent/forwarder"
+	"github.com/cloudinsight/cloudinsight-agent/statsd"
 )
 
 func startAgent(shutdown chan struct{}, conf *config.Config) {

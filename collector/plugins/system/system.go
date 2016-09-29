@@ -9,9 +9,9 @@ import (
 	"github.com/shirou/gopsutil/disk"
 	"github.com/shirou/gopsutil/host"
 	"github.com/shirou/gopsutil/load"
-	"github.com/startover/cloudinsight-agent/collector"
-	"github.com/startover/cloudinsight-agent/common/metric"
-	"github.com/startover/cloudinsight-agent/common/plugin"
+	"github.com/cloudinsight/cloudinsight-agent/collector"
+	"github.com/cloudinsight/cloudinsight-agent/common/metric"
+	"github.com/cloudinsight/cloudinsight-agent/common/plugin"
 )
 
 // KB, MB, GB, TB, PB...human friendly

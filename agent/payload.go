@@ -7,8 +7,8 @@ import (
 	"time"
 
 	uuid "github.com/nu7hatch/gouuid"
-	"github.com/startover/cloudinsight-agent/common/config"
-	"github.com/startover/cloudinsight-agent/common/log"
+	"github.com/cloudinsight/cloudinsight-agent/common/config"
+	"github.com/cloudinsight/cloudinsight-agent/common/log"
 )
 
 // NewPayload XXX

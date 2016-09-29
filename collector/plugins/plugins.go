@@ -2,5 +2,6 @@ package plugins
 
 import (
 	// registry all plugins
-	_ "github.com/startover/cloudinsight-agent/collector/plugins/system"
+	_ "github.com/cloudinsight/cloudinsight-agent/collector/plugins/system"
 )
+

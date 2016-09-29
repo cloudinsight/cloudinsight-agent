@@ -8,9 +8,9 @@ import (
 	"strings"
 
 	"github.com/BurntSushi/toml"
-	"github.com/startover/cloudinsight-agent/collector"
-	"github.com/startover/cloudinsight-agent/common/log"
-	"github.com/startover/cloudinsight-agent/common/plugin"
+	"github.com/cloudinsight/cloudinsight-agent/collector"
+	"github.com/cloudinsight/cloudinsight-agent/common/log"
+	"github.com/cloudinsight/cloudinsight-agent/common/plugin"
 )
 
 // VERSION XXX

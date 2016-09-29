@@ -1,8 +1,8 @@
 package agent
 
 import (
-	"github.com/startover/cloudinsight-agent/common/config"
-	"github.com/startover/cloudinsight-agent/common/metric"
+	"github.com/cloudinsight/cloudinsight-agent/common/config"
+	"github.com/cloudinsight/cloudinsight-agent/common/metric"
 )
 
 // NewAggregator XXX

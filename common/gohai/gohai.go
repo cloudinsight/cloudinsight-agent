@@ -7,8 +7,8 @@ import (
 	"github.com/DataDog/gohai/network"
 	"github.com/DataDog/gohai/platform"
 	"github.com/shirou/gopsutil/process"
-	"github.com/startover/cloudinsight-agent/common/log"
-	"github.com/startover/cloudinsight-agent/common/util"
+	"github.com/cloudinsight/cloudinsight-agent/common/log"
+	"github.com/cloudinsight/cloudinsight-agent/common/util"
 )
 
 // Collector XXX

@@ -5,8 +5,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/startover/cloudinsight-agent/common/log"
-	"github.com/startover/cloudinsight-agent/common/metric"
+	"github.com/cloudinsight/cloudinsight-agent/common/log"
+	"github.com/cloudinsight/cloudinsight-agent/common/metric"
 )
 
 const (

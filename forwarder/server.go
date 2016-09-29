@@ -5,9 +5,9 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/startover/cloudinsight-agent/common/api"
-	"github.com/startover/cloudinsight-agent/common/config"
-	"github.com/startover/cloudinsight-agent/common/log"
+	"github.com/cloudinsight/cloudinsight-agent/common/api"
+	"github.com/cloudinsight/cloudinsight-agent/common/config"
+	"github.com/cloudinsight/cloudinsight-agent/common/log"
 )
 
 // NewForwarder XXX
