@@ -110,8 +110,53 @@ func (agg *aggregator) SubmitPackets(
 	}
 }
 
+// Add XXX
+func (agg *aggregator) Add(metricType string, m Metric) {
+	if m.Hostname == "" {
+		m.Hostname = agg.hostname
+	}
+
+	ctx := m.Context()
+	generator, ok := agg.context[ctx]
+	if !ok {
+		var err error
+		generator, err = NewGenerator(metricType, m, agg.formatter)
+		if err != nil {
+			log.Errorf("Error adding metric [%v]: %s\n", m, err.Error())
+			return
+		}
+		agg.context[ctx] = generator
+	}
+
+	value, err := m.GetCorrectedValue()
+	if err != nil {
+		log.Error(err)
+		return
+	}
+
+	generator.Sample(value, m.Timestamp)
+}
+
+// Flush XXX
+func (agg *aggregator) Flush() {
+	timestamp := time.Now().Unix()
+	for ctx, generator := range agg.context {
+		if generator.IsExpired(agg.expirySeconds) {
+			log.Debugf("%s hasn't been submitted in %ds. Expiring.", ctx, agg.expirySeconds)
+
+			delete(agg.context, ctx)
+			continue
+		}
+
+		metrics := generator.Flush(timestamp, agg.interval)
+		for _, m := range metrics {
+			agg.metrics <- m
+		}
+	}
+}
+
 // Schema of a statsd packet:
-// <name>:<value>|<metric_type>|@<sample_rate>|#<tag1_name>:<tag1_value>,<tag2_name>:<tag2_value>:<value>|<metric_type>...
+// <name>:<value>|<metric_type>|@<sample_rate>|#<tag1_name>:<tag1_value>,<tag2_name>:<tag2_value>
 // For example:
 // users.online:1|c|@0.5|#country:china,environment:production
 // users.online:1|c|#sometagwithnovalue
@@ -172,46 +217,4 @@ func parsePacket(
 	}
 
 	return &m, nil
-}
-
-// Add XXX
-func (agg *aggregator) Add(metricType string, m Metric) {
-	generator, ok := agg.context[m.Context()]
-	if !ok {
-		var err error
-		if m.Hostname == "" {
-			m.Hostname = agg.hostname
-		}
-
-		generator, err = NewGenerator(metricType, m, agg.formatter)
-		if err != nil {
-			log.Errorf("Error adding metric [%v]: %s\n", m, err.Error())
-			return
-		}
-		agg.context[m.Context()] = generator
-	}
-
-	value, err := m.GetCorrectedValue()
-	if err != nil {
-		log.Error(err)
-		return
-	}
-
-	generator.Sample(value, m.Timestamp)
-}
-
-// Flush XXX
-func (agg *aggregator) Flush() {
-	timestamp := time.Now().Unix()
-	for cxt, metric := range agg.context {
-		if metric.IsExpired(agg.expirySeconds) {
-			delete(agg.context, cxt)
-			continue
-		}
-
-		metrics := metric.Flush(timestamp, agg.interval)
-		for _, m := range metrics {
-			agg.metrics <- m
-		}
-	}
 }

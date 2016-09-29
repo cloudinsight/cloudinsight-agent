@@ -29,5 +29,8 @@ build:
 	@echo ">> building binaries"
 	@$(GO) build -v -o ./bin/cloudinsight-agent
 
+run: build
+	./bin/cloudinsight-agent
 
-.PHONY: all style format build test vet
+
+.PHONY: all style format build test vet run

@@ -35,7 +35,6 @@ func NewConfig() (*Config, error) {
 	}
 
 	if c.GlobalConfig.LicenseKey == "" {
-		// configLogger.Errorf("LicenseKey is empty.")
 		log.Error("LicenseKey is empty.")
 		return nil, fmt.Errorf("LicenseKey must be specified in the config file.")
 	}

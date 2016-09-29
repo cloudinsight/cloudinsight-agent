@@ -68,9 +68,9 @@ func NewGenerator(metricType string, metric Metric, formatter Formatter) (Genera
 			aggregates:  DefaultHistogramAggregates,
 			percentiles: DefaultHistogramPercentiles,
 		}, nil
+	default:
+		return nil, fmt.Errorf("unsupported metricType: %s", metricType)
 	}
-
-	return nil, fmt.Errorf("unsupported metricType: %s", metricType)
 }
 
 // Metric XXX
@@ -372,7 +372,7 @@ func (s *Set) Sample(value float64, timestamp int64) {
 	if _, ok := s.values[value]; !ok {
 		s.values[value] = true
 	}
-	s.Metric.LastSampleTime = time.Now().Unix()
+	s.LastSampleTime = time.Now().Unix()
 }
 
 // Flush XXX
@@ -400,7 +400,7 @@ func (r *Rate) Sample(value float64, timestamp int64) {
 	ts := time.Now().Unix()
 	r.preSample = r.curSample
 	r.curSample = [2]float64{float64(ts), value}
-	r.Metric.LastSampleTime = ts
+	r.LastSampleTime = ts
 }
 
 // Flush XXX
@@ -411,13 +411,13 @@ func (r *Rate) Flush(timestamp int64, interval float64) []Metric {
 
 	timeDuration := r.curSample[0] - r.preSample[0]
 	if timeDuration == 0 {
-		log.Warnf("Metric %s has an duration of 0. Not flushing.", r.Metric.Name)
+		log.Warnf("Metric %s has an duration of 0. Not flushing.", r.Name)
 		return nil
 	}
 
 	delta := r.curSample[1] - r.preSample[1]
 	if delta < 0 {
-		log.Infof("Metric %s has a rate < 0. Counter may have been Reset.", r.Metric.Name)
+		log.Infof("Metric %s has a rate < 0. Counter may have been Reset.", r.Name)
 		return nil
 	}
 
