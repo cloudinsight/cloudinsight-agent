@@ -306,10 +306,7 @@ func (s *SystemStats) collectDiskIOMetrics(agg metric.Aggregator) error {
 			ioawait = float64(ioReadTimeDelta*ioReadCountDelta+ioWriteTimeDelta*ioWriteCountDelta) / float64(ioReadCountDelta+ioWriteCountDelta)
 		}
 
-		agg.Add("gauge", metric.Metric{
-			Name:  "system.io.await",
-			Value: ioawait,
-		})
+		agg.Add("gauge", metric.NewMetric("system.io.await", ioawait))
 	}
 
 	s.io.lastIOStats = diskio

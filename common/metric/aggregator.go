@@ -19,7 +19,7 @@ type Aggregator interface {
 		t ...int64)
 
 	SubmitPackets(packets []string)
-	Add(metricType string, metric Metric)
+	Add(metricType string, m Metric)
 	Flush()
 }
 
@@ -51,7 +51,6 @@ func NewAggregator(
 	}
 }
 
-// MetricAggregator XXX
 type aggregator struct {
 	metrics       chan Metric
 	context       map[Context]Generator
@@ -116,7 +115,7 @@ func (agg *aggregator) Add(metricType string, m Metric) {
 		m.Hostname = agg.hostname
 	}
 
-	ctx := m.Context()
+	ctx := m.context()
 	generator, ok := agg.context[ctx]
 	if !ok {
 		var err error
@@ -128,7 +127,7 @@ func (agg *aggregator) Add(metricType string, m Metric) {
 		agg.context[ctx] = generator
 	}
 
-	value, err := m.GetCorrectedValue()
+	value, err := m.getCorrectedValue()
 	if err != nil {
 		log.Error(err)
 		return
