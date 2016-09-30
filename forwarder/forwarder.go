@@ -10,7 +10,7 @@ import (
 	"github.com/cloudinsight/cloudinsight-agent/common/log"
 )
 
-// NewForwarder XXX
+// NewForwarder creates a new instance of Forwarder.
 func NewForwarder(conf *config.Config) *Forwarder {
 	api := api.NewAPI(conf.GlobalConfig.CiURL, conf.GlobalConfig.LicenseKey, 10*time.Second)
 	return &Forwarder{
@@ -19,20 +19,22 @@ func NewForwarder(conf *config.Config) *Forwarder {
 	}
 }
 
-// Forwarder XXX
+// Forwarder sends the metrics to Cloudinsight data center, which is collected by Collector and Statsd.
 type Forwarder struct {
 	api  *api.API
 	conf *config.Config
 }
 
-// Run XXX
+func (f *Forwarder) metricHandler(w http.ResponseWriter, r *http.Request) {
+	err := f.api.Post(f.api.GetURL("metrics"), r.Body)
+	if err != nil {
+		log.Errorf("Error occured when posting Payload. %s", err)
+	}
+}
+
+// Run runs a http server listening to 10010 as default.
 func (f *Forwarder) Run(shutdown chan struct{}) error {
-	http.HandleFunc("/infrastructure/metrics", func(w http.ResponseWriter, r *http.Request) {
-		err := f.api.Post(f.api.GetURL("metrics"), r.Body)
-		if err != nil {
-			log.Errorf("Error occured when posting Payload. %s", err)
-		}
-	})
+	http.HandleFunc("/infrastructure/metrics", f.metricHandler)
 
 	http.HandleFunc("/infrastructure/series", func(w http.ResponseWriter, r *http.Request) {
 		// TODO
@@ -49,10 +51,14 @@ func (f *Forwarder) Run(shutdown chan struct{}) error {
 		MaxHeaderBytes: 1 << 20,
 	}
 
-	l, err := net.Listen("tcp", f.conf.GetForwarderAddr())
+	addr := f.conf.GetForwarderAddr()
+
+	l, err := net.Listen("tcp", addr)
 	if err != nil {
 		return err
 	}
+
+	log.Infoln("Forwarder listening on:", addr)
 
 	go func() {
 		if err := s.Serve(l); err != nil {

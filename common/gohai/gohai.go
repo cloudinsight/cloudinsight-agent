@@ -25,7 +25,7 @@ var collectors = []Collector{
 	&platform.Platform{},
 }
 
-// GetMetadata XXX
+// GetMetadata collects system infomation of cpu, filesystem, memory, network and platform.
 func GetMetadata() map[string]interface{} {
 	result := make(map[string]interface{})
 
@@ -59,7 +59,7 @@ func getInactivePids(pids []int32, cachedPids []int32) []int32 {
 	return complement
 }
 
-// GetProcesses XXX
+// GetProcesses gets the processes list.
 func GetProcesses() []interface{} {
 	var err error
 	var processes []interface{}

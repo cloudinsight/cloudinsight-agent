@@ -13,29 +13,35 @@ import (
 	"github.com/cloudinsight/cloudinsight-agent/common/plugin"
 )
 
-// VERSION XXX
+// VERSION sets the agent version here.
 const VERSION = "0.0.1"
 
-// NewConfig XXX
-func NewConfig() (*Config, error) {
-	c := &Config{
-		GlobalConfig: &GlobalConfig{
-			CiURL: "https://dc-cloud.oneapm.com",
-		},
+var (
+	// DefaultConfig is the default top-level configuration.
+	DefaultConfig = Config{
+		GlobalConfig: DefaultGlobalConfig,
 	}
 
-	confPath, err := getDefaultConfigPath()
-	if err != nil {
-		return nil, err
+	// DefaultGlobalConfig is the default global configuration.
+	DefaultGlobalConfig = GlobalConfig{
+		CiURL:      "https://dc-cloud.oneapm.com",
+		BindHost:   "127.0.0.1",
+		ListenPort: 10010,
+		StatsdPort: 8251,
 	}
+)
 
-	err = c.LoadConfig(confPath)
+// NewConfig creates a new instance of Config.
+func NewConfig(confPath string) (*Config, error) {
+	c := &Config{}
+	*c = DefaultConfig
+
+	err := c.LoadConfig(confPath)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to load the config file: %s", err)
 	}
 
 	if c.GlobalConfig.LicenseKey == "" {
-		log.Error("LicenseKey is empty.")
 		return nil, fmt.Errorf("LicenseKey must be specified in the config file.")
 	}
 
@@ -44,8 +50,8 @@ func NewConfig() (*Config, error) {
 
 // Config represents cloudinsight-agent's configuration file.
 type Config struct {
-	GlobalConfig  *GlobalConfig  `toml:"global"`
-	LoggingConfig *LoggingConfig `toml:"logging"`
+	GlobalConfig  GlobalConfig  `toml:"global"`
+	LoggingConfig LoggingConfig `toml:"logging"`
 	Plugins       []*plugin.RunningPlugin
 }
 
@@ -155,44 +161,22 @@ func (c *Config) PluginNames() []string {
 	return name
 }
 
-// GetForwarderAddr XXX
+// GetForwarderAddr gets the address that Forwarder listening to.
 func (c *Config) GetForwarderAddr() string {
-	hostAddr := "127.0.0.1"
-	port := 10010
-
-	if c.GlobalConfig.BindHost != "" {
-		hostAddr = c.GlobalConfig.BindHost
-	}
-
-	if c.GlobalConfig.ListenPort != 0 {
-		port = c.GlobalConfig.ListenPort
-	}
-
-	return fmt.Sprintf("%s:%d", hostAddr, port)
+	return fmt.Sprintf("%s:%d", c.GlobalConfig.BindHost, c.GlobalConfig.ListenPort)
 }
 
-// GetForwarderAddrWithScheme XXX
+// GetForwarderAddrWithScheme gets the address of Forwarder with scheme prefix.
 func (c *Config) GetForwarderAddrWithScheme() string {
 	return fmt.Sprintf("http://%s", c.GetForwarderAddr())
 }
 
-// GetStatsdAddr XXX
+// GetStatsdAddr gets the address that Statsd listening to.
 func (c *Config) GetStatsdAddr() string {
-	hostAddr := "127.0.0.1"
-	port := 8251
-
-	if c.GlobalConfig.BindHost != "" {
-		hostAddr = c.GlobalConfig.BindHost
-	}
-
-	if c.GlobalConfig.StatsdPort != 0 {
-		port = c.GlobalConfig.StatsdPort
-	}
-
-	return fmt.Sprintf("%s:%d", hostAddr, port)
+	return fmt.Sprintf("%s:%d", c.GlobalConfig.BindHost, c.GlobalConfig.StatsdPort)
 }
 
-// GetHostname XXX
+// GetHostname gets the hostname from os itself if not set in the agent configuration.
 func (c *Config) GetHostname() string {
 	hostname := c.GlobalConfig.Hostname
 	if hostname != "" {
@@ -207,7 +191,7 @@ func (c *Config) GetHostname() string {
 	return hostname
 }
 
-//InitializeLogging XXX
+//InitializeLogging initializes logging level and output according to the agent configuration.
 func (c *Config) InitializeLogging() error {
 	log.Infoln("Initialize log...")
 	err := log.SetLevel(c.LoggingConfig.LogLevel)

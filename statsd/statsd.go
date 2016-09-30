@@ -2,7 +2,6 @@ package statsd
 
 import (
 	"net"
-	"strings"
 	"sync"
 	"time"
 
@@ -91,7 +90,7 @@ func (s *Statsd) listen(shutdown chan struct{}) error {
 	}
 	defer s.closeConn(conn)
 
-	log.Infoln("Statsd addr: ", addr)
+	log.Infoln("Statsd listening on:", addr)
 
 	for {
 		select {
@@ -152,9 +151,8 @@ func (s *Statsd) parser(shutdown chan struct{}, metricC chan metric.Metric, inte
 		case <-ticker.C:
 			agg.Flush()
 		case packet = <-s.in:
-			packets := strings.Split(string(packet), "\n")
-			log.Infoln("Received packets:", packets)
-			agg.SubmitPackets(packets)
+			log.Infoln("Received packet:", string(packet))
+			agg.SubmitPackets(string(packet))
 		}
 	}
 }

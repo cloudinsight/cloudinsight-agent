@@ -10,7 +10,7 @@ func NewAggregator(
 	metrics chan metric.Metric,
 	conf *config.Config,
 ) metric.Aggregator {
-	return metric.NewAggregator(metrics, 1, conf.GetHostname(), formatter)
+	return metric.NewAggregator(metrics, 1, conf.GetHostname(), formatter, nil, nil, 0)
 }
 
 // Format metrics coming from the MetricsAggregator. Will look like:

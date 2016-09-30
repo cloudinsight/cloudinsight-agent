@@ -12,7 +12,7 @@ func NewAggregator(
 	metrics chan metric.Metric,
 	conf *config.Config,
 ) metric.Aggregator {
-	return metric.NewAggregator(metrics, interval, conf.GetHostname(), formatter, interval)
+	return metric.NewAggregator(metrics, interval, conf.GetHostname(), formatter, nil, nil, 0, interval)
 }
 
 // Format metrics coming from the Aggregator. Will look like:

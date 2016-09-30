@@ -5,7 +5,6 @@ import (
 	"math"
 	"sort"
 	"strings"
-	"time"
 )
 
 // Context XXX
@@ -28,7 +27,7 @@ type Metric struct {
 	Formatter      Formatter
 }
 
-// NewMetric XXX
+// NewMetric creates a new instance of Metric.
 func NewMetric(name string, value interface{}, tags ...[]string) Metric {
 	if value == nil {
 		panic("Value can't be nil")
@@ -38,7 +37,7 @@ func NewMetric(name string, value interface{}, tags ...[]string) Metric {
 		Name:  name,
 		Value: value,
 	}
-	if tags != nil {
+	if len(tags) > 0 {
 		m.Tags = tags[0]
 	}
 
@@ -93,9 +92,8 @@ func (m *Metric) context() Context {
 }
 
 // IsExpired XXX
-func (m *Metric) IsExpired(expirySeconds int64) bool {
-	now := time.Now().Unix()
-	if now-m.LastSampleTime > expirySeconds {
+func (m *Metric) IsExpired(timestamp, expirySeconds int64) bool {
+	if timestamp-m.LastSampleTime > expirySeconds {
 		return true
 	}
 	return false
@@ -103,5 +101,8 @@ func (m *Metric) IsExpired(expirySeconds int64) bool {
 
 // Format XXX
 func (m Metric) Format() interface{} {
-	return m.Formatter(m)
+	if m.Formatter != nil {
+		return m.Formatter(m)
+	}
+	return m
 }

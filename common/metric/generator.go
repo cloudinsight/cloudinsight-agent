@@ -19,67 +19,82 @@ var (
 	DefaultHistogramPercentiles = []float64{0.95}
 )
 
-// Generator XXX
+// Generator generates metrics
 type Generator interface {
 	Sample(value float64, timestamp int64)
 	Flush(timestamp int64, interval float64) []Metric
-	IsExpired(expirySeconds int64) bool
+	IsExpired(timestamp, expirySeconds int64) bool
 }
 
-// NewGenerator XXX
-func NewGenerator(metricType string, metric Metric, formatter Formatter) (Generator, error) {
+// NewGenerator creates a new instance of Generator(gauge, bucketGauge, counter, rate, count, set, histogram).
+func NewGenerator(metricType string, metric Metric, formatter Formatter, histogramAggregates []string, histogramPercentiles []float64) (Generator, error) {
 	metric.Type = metricType
 	metric.Formatter = formatter
 	if metric.Samplerate == 0 {
 		// If not set, we just set samplerate to 1 as default.
 		metric.Samplerate = 1
 	}
+	if histogramAggregates == nil {
+		histogramAggregates = DefaultHistogramAggregates
+	}
+	if histogramPercentiles == nil {
+		histogramPercentiles = DefaultHistogramPercentiles
+	}
 
 	switch metricType {
 	case "gauge":
-		return &Gauge{metric}, nil
+		return &gauge{metric}, nil
 	case "bucketgauge":
-		return &BucketGauge{
-			Gauge{metric},
+		return &bucketGauge{
+			gauge{metric},
 		}, nil
 	case "counter":
-		return &Counter{metric}, nil
+		return &counter{
+			Metric: metric,
+		}, nil
 	case "rate":
-		return &Rate{
+		return &rate{
 			Metric: metric,
 		}, nil
 	case "count":
-		return &Count{metric}, nil
+		return &count{
+			Metric: metric,
+		}, nil
 	case "set":
-		return &Set{
+		return &set{
 			Metric: metric,
 			values: make(map[float64]bool),
 		}, nil
 	case "histogram":
-		return &Histogram{
+		return &histogram{
 			Metric:      metric,
-			aggregates:  DefaultHistogramAggregates,
-			percentiles: DefaultHistogramPercentiles,
+			aggregates:  histogramAggregates,
+			percentiles: histogramPercentiles,
 		}, nil
 	default:
 		return nil, fmt.Errorf("unsupported metricType: %s", metricType)
 	}
 }
 
-// Gauge XXX
-type Gauge struct {
+type gauge struct {
 	Metric
 }
 
-// Sample XXX
-func (g *Gauge) Sample(value float64, timestamp int64) {
+func (g *gauge) Sample(value float64, timestamp int64) {
 	g.Value = value
 	g.Timestamp = timestamp
 	g.LastSampleTime = time.Now().Unix()
 }
 
-// Flush XXX
-func (g *Gauge) Flush(timestamp int64, interval float64) []Metric {
+func (g *gauge) Flush(timestamp int64, interval float64) []Metric {
+	defer func() {
+		g.Value = nil
+	}()
+
+	if g.Value == nil {
+		return nil
+	}
+
 	if g.Timestamp != 0 {
 		return []Metric{g.Metric}
 	}
@@ -89,45 +104,63 @@ func (g *Gauge) Flush(timestamp int64, interval float64) []Metric {
 	return []Metric{m}
 }
 
-// BucketGauge XXX
-type BucketGauge struct {
-	Gauge
+type bucketGauge struct {
+	gauge
 }
 
-// Flush XXX
-func (bg *BucketGauge) Flush(timestamp int64, interval float64) []Metric {
+func (bg *bucketGauge) Flush(timestamp int64, interval float64) []Metric {
+	defer func() {
+		bg.Value = nil
+	}()
+
+	if bg.Value == nil {
+		return nil
+	}
+
 	m := bg.Metric
 	m.Type = "gauge"
 	m.Timestamp = timestamp
 	return []Metric{m}
 }
 
-// Count XXX
-type Count struct {
+type count struct {
 	Metric
+
+	hasSampled bool
 }
 
-// Sample XXX
-func (c *Count) Sample(value float64, timestamp int64) {
-	correctedValue, err := c.getCorrectedValue()
-	if err != nil {
-		log.Error(err)
-		return
+func (c *count) Sample(value float64, timestamp int64) {
+	if c.hasSampled {
+		correctedValue, err := c.getCorrectedValue()
+		if err != nil {
+			log.Error(err)
+			return
+		}
+
+		c.Value = correctedValue + value
+	} else {
+		c.Value = value * float64(int(1/c.Samplerate))
+		c.hasSampled = true
 	}
 
-	c.Value = correctedValue + value
 	c.LastSampleTime = time.Now().Unix()
 }
 
-// Flush XXX
-func (c *Count) Flush(timestamp int64, interval float64) []Metric {
+func (c *count) Flush(timestamp int64, interval float64) []Metric {
+	defer func() {
+		c.Value = nil
+	}()
+
+	if c.Value == nil {
+		return nil
+	}
+
 	m := c.Metric
 	m.Timestamp = timestamp
 	return []Metric{m}
 }
 
-// MonotonicCount XXX
-type MonotonicCount struct {
+type monotonicCount struct {
 	Metric
 
 	preCounter float64
@@ -135,16 +168,14 @@ type MonotonicCount struct {
 	count      float64
 }
 
-// Sample XXX
-func (mc *MonotonicCount) Sample(value float64, timestamp int64) {
+func (mc *monotonicCount) Sample(value float64, timestamp int64) {
 	mc.preCounter = mc.curCounter
 	mc.curCounter = value
 	mc.count += math.Max(0, mc.curCounter-mc.preCounter)
 	mc.LastSampleTime = time.Now().Unix()
 }
 
-// Flush XXX
-func (mc *MonotonicCount) Flush(timestamp int64, interval float64) []Metric {
+func (mc *monotonicCount) Flush(timestamp int64, interval float64) []Metric {
 	defer func() {
 		mc.count = 0
 	}()
@@ -155,30 +186,35 @@ func (mc *MonotonicCount) Flush(timestamp int64, interval float64) []Metric {
 	return []Metric{m}
 }
 
-// Counter XXX
-type Counter struct {
+type counter struct {
 	Metric
+
+	hasSampled bool
 }
 
-// Sample XXX
-func (ct *Counter) Sample(value float64, timestamp int64) {
+func (ct *counter) Sample(value float64, timestamp int64) {
 	if ct.Samplerate == 0 {
 		log.Error("The samplerate can not be zero.")
 		return
 	}
 
-	correctedValue, err := ct.getCorrectedValue()
-	if err != nil {
-		log.Error(err)
-		return
+	if ct.hasSampled {
+		correctedValue, err := ct.getCorrectedValue()
+		if err != nil {
+			log.Error(err)
+			return
+		}
+
+		ct.Value = correctedValue + value*float64(int(1/ct.Samplerate))
+	} else {
+		ct.Value = value * float64(int(1/ct.Samplerate))
+		ct.hasSampled = true
 	}
 
-	ct.Value = correctedValue + value*float64(int(1/ct.Samplerate))
 	ct.LastSampleTime = time.Now().Unix()
 }
 
-// Flush XXX
-func (ct *Counter) Flush(timestamp int64, interval float64) []Metric {
+func (ct *counter) Flush(timestamp int64, interval float64) []Metric {
 	defer func() {
 		ct.Value = 0
 	}()
@@ -186,7 +222,7 @@ func (ct *Counter) Flush(timestamp int64, interval float64) []Metric {
 	correctedValue, err := ct.getCorrectedValue()
 	if err != nil {
 		log.Error(err)
-		return []Metric{}
+		return nil
 	}
 
 	m := ct.Metric
@@ -195,8 +231,7 @@ func (ct *Counter) Flush(timestamp int64, interval float64) []Metric {
 	return []Metric{m}
 }
 
-// Histogram XXX
-type Histogram struct {
+type histogram struct {
 	Metric
 
 	count       int64
@@ -205,8 +240,7 @@ type Histogram struct {
 	percentiles []float64
 }
 
-// Sample XXX
-func (h *Histogram) Sample(value float64, timestamp int64) {
+func (h *histogram) Sample(value float64, timestamp int64) {
 	if h.Samplerate == 0 {
 		log.Error("The samplerate can not be zero.")
 		return
@@ -216,15 +250,14 @@ func (h *Histogram) Sample(value float64, timestamp int64) {
 	h.LastSampleTime = time.Now().Unix()
 }
 
-// Flush XXX
-func (h *Histogram) Flush(timestamp int64, interval float64) []Metric {
+func (h *histogram) Flush(timestamp int64, interval float64) []Metric {
 	defer func() {
 		h.count = 0
-		h.samples = []float64{}
+		h.samples = nil
 	}()
 
 	if h.count == 0 {
-		return []Metric{}
+		return nil
 	}
 
 	sort.Float64s(h.samples)
@@ -272,15 +305,13 @@ func (h *Histogram) Flush(timestamp int64, interval float64) []Metric {
 	return metrics
 }
 
-// Set XXX
-type Set struct {
+type set struct {
 	Metric
 
 	values map[float64]bool
 }
 
-// Sample XXX
-func (s *Set) Sample(value float64, timestamp int64) {
+func (s *set) Sample(value float64, timestamp int64) {
 	if s.values == nil {
 		s.values = make(map[float64]bool)
 	}
@@ -291,11 +322,14 @@ func (s *Set) Sample(value float64, timestamp int64) {
 	s.LastSampleTime = time.Now().Unix()
 }
 
-// Flush XXX
-func (s *Set) Flush(timestamp int64, interval float64) []Metric {
+func (s *set) Flush(timestamp int64, interval float64) []Metric {
 	defer func() {
 		s.values = nil
 	}()
+
+	if s.values == nil {
+		return nil
+	}
 
 	m := s.Metric
 	m.Value = float64(len(s.values))
@@ -303,24 +337,25 @@ func (s *Set) Flush(timestamp int64, interval float64) []Metric {
 	return []Metric{m}
 }
 
-// Rate XXX
-type Rate struct {
+type rate struct {
 	Metric
 
 	preSample [2]float64
 	curSample [2]float64
 }
 
-// Sample XXX
-func (r *Rate) Sample(value float64, timestamp int64) {
+func (r *rate) Sample(value float64, timestamp int64) {
 	ts := time.Now().Unix()
 	r.preSample = r.curSample
 	r.curSample = [2]float64{float64(ts), value}
 	r.LastSampleTime = ts
 }
 
-// Flush XXX
-func (r *Rate) Flush(timestamp int64, interval float64) []Metric {
+func (r *rate) Flush(timestamp int64, interval float64) []Metric {
+	defer func() {
+		r.preSample[0] = 0
+	}()
+
 	if r.preSample[0] == 0 {
 		return nil
 	}

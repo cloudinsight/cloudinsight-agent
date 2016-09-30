@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"os"
 	"os/signal"
@@ -16,6 +17,8 @@ import (
 	"github.com/cloudinsight/cloudinsight-agent/forwarder"
 	"github.com/cloudinsight/cloudinsight-agent/statsd"
 )
+
+var fConfig = flag.String("config", "", "configuration file to load")
 
 func startAgent(shutdown chan struct{}, conf *config.Config) {
 	ag := agent.NewAgent(conf)
@@ -46,6 +49,7 @@ func main() {
 	reload <- true
 	for <-reload {
 		reload <- false
+		flag.Parse()
 
 		shutdown := make(chan struct{})
 		signals := make(chan os.Signal)
@@ -65,7 +69,7 @@ func main() {
 			}
 		}()
 
-		conf, err := config.NewConfig()
+		conf, err := config.NewConfig(*fConfig)
 		if err != nil {
 			log.Fatalf("failed to load config: %s", err)
 		}

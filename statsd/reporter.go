@@ -17,7 +17,7 @@ type Reporter struct {
 	conf *config.Config
 }
 
-// NewReporter XXX
+// NewReporter creates a new instance of Reporter.
 func NewReporter(conf *config.Config) *Reporter {
 	emitter := emitter.NewEmitter("Statsd")
 	api := api.NewAPI(conf.GetForwarderAddrWithScheme(), conf.GlobalConfig.LicenseKey, 5*time.Second)
@@ -32,18 +32,18 @@ func NewReporter(conf *config.Config) *Reporter {
 	return r
 }
 
-// Post XXX
+// Post sends the metrics to Forwarder API.
 func (r *Reporter) Post(metrics []interface{}) error {
 	start := time.Now()
 	payload := Payload{}
 	payload.Series = metrics
 
-	log.Infoln("Submitting metrics:", payload)
+	log.Debugf("Submitting metrics: %s", payload)
 
 	err := r.api.SubmitMetrics(&payload)
 	elapsed := time.Since(start)
 	if err == nil {
-		log.Infof("Write batch of %d metrics in %s",
+		log.Debugf("Post batch of %d metrics in %s",
 			len(metrics), elapsed)
 	}
 	return err

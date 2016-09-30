@@ -13,7 +13,7 @@ import (
 
 const metadataUpdateInterval = 4 * time.Hour
 
-// Collector contains the output configuration
+// Collector posts metrics to Forwarder API.
 type Collector struct {
 	*emitter.Emitter
 
@@ -22,7 +22,7 @@ type Collector struct {
 	start time.Time
 }
 
-// NewCollector XXX
+// NewCollector creates a new instance of Collector.
 func NewCollector(conf *config.Config) *Collector {
 	emitter := emitter.NewEmitter("Collector")
 	api := api.NewAPI(conf.GetForwarderAddrWithScheme(), conf.GlobalConfig.LicenseKey, 5*time.Second)
@@ -38,7 +38,7 @@ func NewCollector(conf *config.Config) *Collector {
 	return c
 }
 
-// Post XXX
+// Post sends the metrics to Forwarder API.
 func (c *Collector) Post(metrics []interface{}) error {
 	start := time.Now()
 	payload := NewPayload(c.conf)
@@ -76,12 +76,13 @@ func (c *Collector) Post(metrics []interface{}) error {
 	err := c.api.SubmitMetrics(payload)
 	elapsed := time.Since(start)
 	if err == nil {
-		log.Infof("Post batch of %d metrics in %s",
+		log.Debugf("Post batch of %d metrics in %s",
 			len(metrics), elapsed)
 	}
 	return err
 }
 
+// We send metadata every 4 hours, which contains Gohai, HostTags and so on.
 func (c *Collector) shouldSendMetadata() bool {
 	if c.IsFirstRun() {
 		return true

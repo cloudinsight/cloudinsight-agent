@@ -2,28 +2,32 @@ package api
 
 import (
 	"bytes"
+	"compress/zlib"
 	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
 	"net/url"
+	"strings"
 	"time"
 
+	"github.com/cloudinsight/cloudinsight-agent/common/config"
 	"github.com/cloudinsight/cloudinsight-agent/common/log"
 )
 
 // API XXX
 type API struct {
-	CiURL      string
-	LicenseKey string
+	ciURL      string
+	licenseKey string
 	client     *http.Client
 }
 
 // NewAPI XXX
 func NewAPI(ciURL string, licenseKey string, timeout time.Duration) *API {
+	ciURL = strings.TrimSuffix(ciURL, "/")
 	api := &API{
-		CiURL:      ciURL,
-		LicenseKey: licenseKey,
+		ciURL:      ciURL,
+		licenseKey: licenseKey,
 		client: &http.Client{
 			Timeout: timeout,
 		},
@@ -31,21 +35,20 @@ func NewAPI(ciURL string, licenseKey string, timeout time.Duration) *API {
 	return api
 }
 
-// SubmitMetrics XXX
+// SubmitMetrics submits metrics the collector collected.
 func (api *API) SubmitMetrics(data interface{}) error {
-	// var body bytes.Buffer
+	var body bytes.Buffer
 
-	// err := json.NewEncoder(&body).Encode(data)
-	tsBytes, err := json.Marshal(data)
+	err := json.NewEncoder(&body).Encode(data)
 	if err != nil {
 		return fmt.Errorf("unable to marshal data, %s", err.Error())
 	}
+	compressed := api.compress(body.Bytes())
 
-	// return api.Post(api.GetURL("metrics"), &body)
-	return api.Post(api.GetURL("metrics"), bytes.NewBuffer(tsBytes))
+	return api.Post(api.GetURL("metrics"), &compressed)
 }
 
-// Post XXX
+// Post sends the metrics to Cloudinsight.
 func (api *API) Post(path string, body io.Reader) error {
 	req, err := http.NewRequest("POST", path, body)
 	if err != nil {
@@ -66,13 +69,26 @@ func (api *API) Post(path string, body io.Reader) error {
 }
 
 func (api *API) do(req *http.Request) (resp *http.Response, err error) {
+	req.Header.Add("User-Agent", fmt.Sprintf("Cloudinsight Agent/%s", config.VERSION))
 	req.Header.Add("Content-Type", "application/json")
+	req.Header.Add("Content-Encoding", "deflate")
+	req.Header.Add("Accept", "text/html, */*")
 
 	resp, err = api.client.Do(req)
 	if err != nil {
 		return nil, err
 	}
 	return resp, nil
+}
+
+func (api *API) compress(b []byte) bytes.Buffer {
+	var buf bytes.Buffer
+	comp := zlib.NewWriter(&buf)
+
+	_, _ = comp.Write(b)
+	_ = comp.Close()
+
+	return buf
 }
 
 func closeResp(resp *http.Response) {
@@ -84,20 +100,20 @@ func closeResp(resp *http.Response) {
 	}
 }
 
-// GetURL XXX
+// GetURL gets URL according to msgType(metrics, service_checks or series).
 func (api *API) GetURL(msgType string) string {
 	q := url.Values{
-		"license_key": []string{api.LicenseKey},
+		"license_key": []string{api.licenseKey},
 	}
 
 	switch msgType {
 	case "metrics":
-		return fmt.Sprintf("%s/infrastructure/metrics?%s", api.CiURL, q.Encode())
+		return fmt.Sprintf("%s/infrastructure/metrics?%s", api.ciURL, q.Encode())
 	case "service_checks":
-		return fmt.Sprintf("%s/infrastructure/service_checks?%s", api.CiURL, q.Encode())
+		return fmt.Sprintf("%s/infrastructure/service_checks?%s", api.ciURL, q.Encode())
 	case "series":
-		return fmt.Sprintf("%s/infrastructure/series?%s", api.CiURL, q.Encode())
+		return fmt.Sprintf("%s/infrastructure/series?%s", api.ciURL, q.Encode())
+	default:
+		return ""
 	}
-
-	return ""
 }
