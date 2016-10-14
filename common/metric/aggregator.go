@@ -28,7 +28,7 @@ const (
 	// DefaultRecentPointThreshold is default to 1 hour
 	DefaultRecentPointThreshold = 3600
 
-	// DefaultExpirySeconds is default to 5 minute
+	// DefaultExpirySeconds is default to 5 minutes
 	DefaultExpirySeconds = 5 * 60
 )
 
