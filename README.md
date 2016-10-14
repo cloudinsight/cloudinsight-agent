@@ -8,9 +8,9 @@ running on, or from other services, and sending them to [Cloudinsight](https://c
 To build Cloudinsight Agent from the source code yourself you need to have a working Go environment with [version 1.5 or greater installed](https://golang.org/doc/install).
 
 ```
-$ mkdir -p $GOPATH/src/git.oneapm.me/cloud-insight
-$ cd $GOPATH/src/git.oneapm.me/cloud-insight
-$ git clone git@git.oneapm.me:cloud-insight/cloudinsight-agent.git
+$ mkdir -p $GOPATH/src/github.com/cloudinsight
+$ cd $GOPATH/src/github.com/cloudinsight
+$ git clone https://github.com/cloudinsight/cloudinsight-agent
 $ cd cloudinsight-agent
 $ make build
 ```

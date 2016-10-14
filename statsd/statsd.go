@@ -151,7 +151,7 @@ func (s *Statsd) parser(shutdown chan struct{}, metricC chan metric.Metric, inte
 		case <-ticker.C:
 			agg.Flush()
 		case packet = <-s.in:
-			log.Infoln("Received packet:", string(packet))
+			log.Debugf("Received packet: %s", string(packet))
 			agg.SubmitPackets(string(packet))
 		}
 	}

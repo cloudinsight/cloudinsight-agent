@@ -25,7 +25,7 @@ type Collector struct {
 // NewCollector creates a new instance of Collector.
 func NewCollector(conf *config.Config) *Collector {
 	emitter := emitter.NewEmitter("Collector")
-	api := api.NewAPI(conf.GetForwarderAddrWithScheme(), conf.GlobalConfig.LicenseKey, 5*time.Second)
+	api := api.NewAPI(conf.GetForwarderAddrWithScheme(), conf.GlobalConfig.LicenseKey, 10*time.Second)
 
 	c := &Collector{
 		Emitter: emitter,

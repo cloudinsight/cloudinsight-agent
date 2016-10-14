@@ -37,13 +37,12 @@ func NewAPI(ciURL string, licenseKey string, timeout time.Duration) *API {
 
 // SubmitMetrics submits metrics the collector collected.
 func (api *API) SubmitMetrics(data interface{}) error {
-	var body bytes.Buffer
-
-	err := json.NewEncoder(&body).Encode(data)
+	dataBytes, err := json.Marshal(data)
 	if err != nil {
 		return fmt.Errorf("unable to marshal data, %s", err.Error())
 	}
-	compressed := api.compress(body.Bytes())
+	// log.Debugf("Submitting metrics: %s", string(dataBytes))
+	compressed := api.compress(dataBytes)
 
 	return api.Post(api.GetURL("metrics"), &compressed)
 }

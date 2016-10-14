@@ -4,6 +4,7 @@ import (
 	"encoding/hex"
 	"net"
 	"os"
+	"runtime"
 	"time"
 
 	"github.com/cloudinsight/cloudinsight-agent/common/config"
@@ -18,6 +19,7 @@ func NewPayload(conf *config.Config) *Payload {
 		CollectionTimestamp: time.Now().Unix(),
 		InternalHostname:    conf.GetHostname(),
 		LicenseKey:          conf.GlobalConfig.LicenseKey,
+		OS:                  runtime.GOOS,
 		UUID:                getUUID(),
 	}
 
@@ -32,6 +34,7 @@ type Payload struct {
 	LicenseKey          string                 `json:"licenseKey"`
 	Metrics             []interface{}          `json:"metrics,omitempty"`
 	ServiceChecks       []interface{}          `json:"service_checks"`
+	OS                  string                 `json:"os"`
 	UUID                string                 `json:"uuid"`
 	Gohai               map[string]interface{} `json:"gohai,omitempty"`
 	Processes           map[string]interface{} `json:"processes,omitempty"`

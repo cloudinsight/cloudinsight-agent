@@ -38,8 +38,6 @@ func (r *Reporter) Post(metrics []interface{}) error {
 	payload := Payload{}
 	payload.Series = metrics
 
-	log.Debugf("Submitting metrics: %s", payload)
-
 	err := r.api.SubmitMetrics(&payload)
 	elapsed := time.Since(start)
 	if err == nil {
