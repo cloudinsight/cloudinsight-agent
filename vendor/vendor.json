@@ -57,6 +57,13 @@
 			"revisionTime": "2015-05-20T19:46:26Z"
 		},
 		{
+			"checksumSHA1": "jqSVRDK7dGg6E/NikVq1Kw6gdbA=",
+			"origin": "github.com/stretchr/testify/vendor/github.com/davecgh/go-spew/spew",
+			"path": "github.com/davecgh/go-spew/spew",
+			"revision": "1f4a1643a57e798696635ea4c126e9127adb7d3c",
+			"revisionTime": "2016-02-21T10:44:43Z"
+		},
+		{
 			"checksumSHA1": "wDZdTaY9JiqqqnF4c3pHP71nWmk=",
 			"path": "github.com/go-ole/go-ole",
 			"revision": "7dfdcf409020452e29b4babcbb22f984d2aa308a",
@@ -73,6 +80,13 @@
 			"path": "github.com/nu7hatch/gouuid",
 			"revision": "179d4d0c4d8d407a32af483c2354df1d2c91e6c3",
 			"revisionTime": "2013-12-21T20:05:32Z"
+		},
+		{
+			"checksumSHA1": "zKKp5SZ3d3ycKe4EKMNT0BqAWBw=",
+			"origin": "github.com/stretchr/testify/vendor/github.com/pmezard/go-difflib/difflib",
+			"path": "github.com/pmezard/go-difflib/difflib",
+			"revision": "1f4a1643a57e798696635ea4c126e9127adb7d3c",
+			"revisionTime": "2016-02-21T10:44:43Z"
 		},
 		{
 			"checksumSHA1": "ToLFWWpwBceipBQRASIxs36Glok=",
@@ -127,6 +141,31 @@
 			"path": "github.com/shirou/w32",
 			"revision": "3c9377fc6748f222729a8270fe2775d149a249ad",
 			"revisionTime": "2016-02-04T00:35:29Z"
+		},
+		{
+			"checksumSHA1": "EO+jcRet/AJ6IY3lBO8l8BLsZWg=",
+			"origin": "github.com/stretchr/testify/vendor/github.com/stretchr/objx",
+			"path": "github.com/stretchr/objx",
+			"revision": "1f4a1643a57e798696635ea4c126e9127adb7d3c",
+			"revisionTime": "2016-02-21T10:44:43Z"
+		},
+		{
+			"checksumSHA1": "Bn333k9lTndxU3D6n/G5c+GMcYY=",
+			"path": "github.com/stretchr/testify/assert",
+			"revision": "1f4a1643a57e798696635ea4c126e9127adb7d3c",
+			"revisionTime": "2016-02-21T10:44:43Z"
+		},
+		{
+			"checksumSHA1": "8wi0XTx6HyW5ogqW6friUMd+Nns=",
+			"path": "github.com/stretchr/testify/mock",
+			"revision": "1f4a1643a57e798696635ea4c126e9127adb7d3c",
+			"revisionTime": "2016-02-21T10:44:43Z"
+		},
+		{
+			"checksumSHA1": "P9FJpir2c4G5PA46qEkaWy3l60U=",
+			"path": "github.com/stretchr/testify/require",
+			"revision": "1f4a1643a57e798696635ea4c126e9127adb7d3c",
+			"revisionTime": "2016-02-21T10:44:43Z"
 		},
 		{
 			"checksumSHA1": "8fD/im5Kwvy3JgmxulDTambmE8w=",
