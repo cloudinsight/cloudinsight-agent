@@ -3,7 +3,6 @@
 Cloudinsight Agent is written in Go for collecting metrics from the system it's
 running on, or from other services, and sending them to [Cloudinsight](https://cloud.oneapm.com).
 
-
 ## Building from source
 
 To build Cloudinsight Agent from the source code yourself you need to have a working Go environment with [version 1.5 or greater installed](https://golang.org/doc/install).
@@ -32,3 +31,12 @@ Run the agent in foregound:
 ```
 $ ./bin/cloudinsight-agent
 ```
+
+## Related works
+
+I have been influenced by the following great works:
+
+- [ddagent](https://github.com/datadog/dd-agent)
+- [telegraf](https://github.com/influxdata/telegraf)
+- [prometheus](https://github.com/prometheus/prometheus)
+- [mackerel](https://github.com/mackerelio/mackerel-agent)
