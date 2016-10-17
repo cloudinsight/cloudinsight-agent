@@ -1,4 +1,4 @@
-# Cloudinsight Agent
+# Cloudinsight Agent  [![Build Status](https://travis-ci.org/cloudinsight/cloudinsight-agent.svg)][travis]
 
 Cloudinsight Agent is written in Go for collecting metrics from the system it's
 running on, or from other services, and sending them to [Cloudinsight](https://cloud.oneapm.com).
