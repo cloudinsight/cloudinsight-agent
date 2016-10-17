@@ -26,7 +26,7 @@ $ vi cloudinsight-agent.conf
 license_key = "*********************"
 ```
 
-Run the agent in foregound:
+Run the agent in foreground:
 
 ```
 $ ./bin/cloudinsight-agent
