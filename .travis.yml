@@ -1,0 +1,11 @@
+sudo: false
+
+language: go
+
+go:
+- 1.6.3
+
+go_import_path: github.com/cloudinsight/cloudinsight-agent
+
+script:
+- make test
