@@ -25,7 +25,7 @@ var collectors = []Collector{
 	&platform.Platform{},
 }
 
-// GetMetadata collects system infomation of cpu, filesystem, memory, network and platform.
+// GetMetadata collects system information of cpu, filesystem, memory, network and platform.
 func GetMetadata() map[string]interface{} {
 	result := make(map[string]interface{})
 

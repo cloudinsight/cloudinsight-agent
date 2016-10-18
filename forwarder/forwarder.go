@@ -28,7 +28,7 @@ type Forwarder struct {
 func (f *Forwarder) metricHandler(w http.ResponseWriter, r *http.Request) {
 	err := f.api.Post(f.api.GetURL("metrics"), r.Body)
 	if err != nil {
-		log.Errorf("Error occured when posting Payload. %s", err)
+		log.Errorf("Error occurred when posting Payload. %s", err)
 	}
 }
 

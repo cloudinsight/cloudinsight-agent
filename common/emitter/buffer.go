@@ -30,7 +30,7 @@ func (b *Buffer) Len() int {
 	return len(b.buf)
 }
 
-// Drops returns the total number of dropped metrics that have occured in this
+// Drops returns the total number of dropped metrics that have occurred in this
 // buffer since instantiation.
 func (b *Buffer) Drops() int {
 	return b.drops
