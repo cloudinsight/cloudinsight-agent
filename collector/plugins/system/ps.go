@@ -11,6 +11,7 @@ import (
 	"github.com/shirou/gopsutil/net"
 )
 
+// PS XXX
 type PS interface {
 	CPUTimes(perCPU, totalCPU bool) ([]cpu.TimesStat, error)
 	DiskUsage(mountPointFilter []string, fstypeExclude []string) ([]*disk.UsageStat, error)

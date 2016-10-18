@@ -8,12 +8,14 @@ import (
 	"github.com/cloudinsight/cloudinsight-agent/common/plugin"
 )
 
+// NewDiskStats XXX
 func NewDiskStats(conf plugin.InitConfig) plugin.Plugin {
 	return &DiskStats{
 		ps: &systemPS{},
 	}
 }
 
+// DiskStats XXX
 type DiskStats struct {
 	ps PS
 
@@ -21,6 +23,7 @@ type DiskStats struct {
 	IgnoreFS    []string
 }
 
+// Check XXX
 func (s *DiskStats) Check(agg metric.Aggregator, instance plugin.Instance) error {
 	disks, err := s.ps.DiskUsage(s.MountPoints, s.IgnoreFS)
 	if err != nil {

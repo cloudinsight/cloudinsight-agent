@@ -24,8 +24,8 @@ const (
 	PB
 )
 
-// NewSystemStats XXX
-func NewSystemStats(conf plugin.InitConfig) plugin.Plugin {
+// NewStats XXX
+func NewStats(conf plugin.InitConfig) plugin.Plugin {
 	var percpu, totalcpu bool
 	if val, ok := conf["percpu"].(bool); ok {
 		percpu = val
@@ -34,7 +34,7 @@ func NewSystemStats(conf plugin.InitConfig) plugin.Plugin {
 		totalcpu = val
 	}
 
-	return &SystemStats{
+	return &Stats{
 		ps: &systemPS{},
 		cpu: &CPUStats{
 			PerCPU:   percpu,
@@ -44,8 +44,8 @@ func NewSystemStats(conf plugin.InitConfig) plugin.Plugin {
 	}
 }
 
-// SystemStats XXX
-type SystemStats struct {
+// Stats XXX
+type Stats struct {
 	ps  PS
 	cpu *CPUStats
 	io  *DiskIOStats
@@ -65,7 +65,8 @@ type DiskIOStats struct {
 	Devices            []string
 }
 
-func (s *SystemStats) Check(agg metric.Aggregator, instance plugin.Instance) error {
+// Check XXX
+func (s *Stats) Check(agg metric.Aggregator, instance plugin.Instance) error {
 	if err := s.collectSystemMetrics(agg); err != nil {
 		return err
 	}
@@ -93,7 +94,7 @@ func (s *SystemStats) Check(agg metric.Aggregator, instance plugin.Instance) err
 	return nil
 }
 
-func (s *SystemStats) collectSystemMetrics(agg metric.Aggregator) error {
+func (s *Stats) collectSystemMetrics(agg metric.Aggregator) error {
 	hostinfo, err := host.Info()
 	if err != nil {
 		return err
@@ -107,7 +108,7 @@ func (s *SystemStats) collectSystemMetrics(agg metric.Aggregator) error {
 	return nil
 }
 
-func (s *SystemStats) collectLoadMetrics(agg metric.Aggregator) error {
+func (s *Stats) collectLoadMetrics(agg metric.Aggregator) error {
 	loadavg, err := load.Avg()
 	if err != nil {
 		return err
@@ -123,7 +124,7 @@ func (s *SystemStats) collectLoadMetrics(agg metric.Aggregator) error {
 	return nil
 }
 
-func (s *SystemStats) collectCPUMetrics(agg metric.Aggregator) error {
+func (s *Stats) collectCPUMetrics(agg metric.Aggregator) error {
 	times, err := s.ps.CPUTimes(s.cpu.PerCPU, s.cpu.TotalCPU)
 	if err != nil {
 		return fmt.Errorf("error getting CPU info: %s", err)
@@ -174,7 +175,7 @@ func (s *SystemStats) collectCPUMetrics(agg metric.Aggregator) error {
 	return nil
 }
 
-func (s *SystemStats) collectMemoryMetrics(agg metric.Aggregator) error {
+func (s *Stats) collectMemoryMetrics(agg metric.Aggregator) error {
 	vm, err := s.ps.VMStat()
 	if err != nil {
 		return fmt.Errorf("error getting virtual memory info: %s", err)
@@ -209,7 +210,7 @@ func (s *SystemStats) collectMemoryMetrics(agg metric.Aggregator) error {
 	return nil
 }
 
-func (s *SystemStats) collectNetMetrics(agg metric.Aggregator) error {
+func (s *Stats) collectNetMetrics(agg metric.Aggregator) error {
 	netio, err := s.ps.NetIO()
 	if err != nil {
 		return fmt.Errorf("error getting net io info: %s", err)
@@ -250,7 +251,7 @@ func (s *SystemStats) collectNetMetrics(agg metric.Aggregator) error {
 	return nil
 }
 
-func (s *SystemStats) collectDiskIOMetrics(agg metric.Aggregator) error {
+func (s *Stats) collectDiskIOMetrics(agg metric.Aggregator) error {
 	diskio, err := s.ps.DiskIO()
 	if err != nil {
 		return fmt.Errorf("error getting disk io info: %s", err)
@@ -322,5 +323,5 @@ func totalCPUTime(t cpu.TimesStat) float64 {
 }
 
 func init() {
-	collector.Add("system", NewSystemStats)
+	collector.Add("system", NewStats)
 }

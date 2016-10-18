@@ -11,10 +11,12 @@ import (
 	"github.com/shirou/gopsutil/net"
 )
 
+// MockPS XXX
 type MockPS struct {
 	mock.Mock
 }
 
+// LoadAvg XXX
 func (m *MockPS) LoadAvg() (*load.AvgStat, error) {
 	ret := m.Called()
 
@@ -24,6 +26,7 @@ func (m *MockPS) LoadAvg() (*load.AvgStat, error) {
 	return r0, r1
 }
 
+// CPUTimes XXX
 func (m *MockPS) CPUTimes(perCPU, totalCPU bool) ([]cpu.TimesStat, error) {
 	ret := m.Called()
 
@@ -33,6 +36,7 @@ func (m *MockPS) CPUTimes(perCPU, totalCPU bool) ([]cpu.TimesStat, error) {
 	return r0, r1
 }
 
+// DiskUsage XXX
 func (m *MockPS) DiskUsage(mountPointFilter []string, fstypeExclude []string) ([]*disk.UsageStat, error) {
 	ret := m.Called(mountPointFilter, fstypeExclude)
 
@@ -42,6 +46,7 @@ func (m *MockPS) DiskUsage(mountPointFilter []string, fstypeExclude []string) ([
 	return r0, r1
 }
 
+// NetIO XXX
 func (m *MockPS) NetIO() ([]net.IOCountersStat, error) {
 	ret := m.Called()
 
@@ -51,6 +56,7 @@ func (m *MockPS) NetIO() ([]net.IOCountersStat, error) {
 	return r0, r1
 }
 
+// NetProto XXX
 func (m *MockPS) NetProto() ([]net.ProtoCountersStat, error) {
 	ret := m.Called()
 
@@ -60,6 +66,7 @@ func (m *MockPS) NetProto() ([]net.ProtoCountersStat, error) {
 	return r0, r1
 }
 
+// DiskIO XXX
 func (m *MockPS) DiskIO() (map[string]disk.IOCountersStat, error) {
 	ret := m.Called()
 
@@ -69,6 +76,7 @@ func (m *MockPS) DiskIO() (map[string]disk.IOCountersStat, error) {
 	return r0, r1
 }
 
+// VMStat XXX
 func (m *MockPS) VMStat() (*mem.VirtualMemoryStat, error) {
 	ret := m.Called()
 
@@ -78,6 +86,7 @@ func (m *MockPS) VMStat() (*mem.VirtualMemoryStat, error) {
 	return r0, r1
 }
 
+// SwapStat XXX
 func (m *MockPS) SwapStat() (*mem.SwapMemoryStat, error) {
 	ret := m.Called()
 
@@ -87,6 +96,7 @@ func (m *MockPS) SwapStat() (*mem.SwapMemoryStat, error) {
 	return r0, r1
 }
 
+// NetConnections XXX
 func (m *MockPS) NetConnections() ([]net.ConnectionStat, error) {
 	ret := m.Called()
 
