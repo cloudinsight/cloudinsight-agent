@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <meta name="description" content="Cloudinsight-agent : Cloudinsight Agent is a system tool that monitors system processes and services, and sends information back to your Cloudinsight account.">
+
+    <link rel="stylesheet" type="text/css" media="screen" href="stylesheets/stylesheet.css">
+
+    <title>Cloudinsight-agent</title>
+  </head>
+
+  <body>
+
+    <!-- HEADER -->
+    <div id="header_wrap" class="outer">
+        <header class="inner">
+          <a id="forkme_banner" href="https://github.com/cloudinsight/cloudinsight-agent">View on GitHub</a>
+
+          <h1 id="project_title">Cloudinsight-agent</h1>
+          <h2 id="project_tagline">Cloudinsight Agent is a system tool that monitors system processes and services, and sends information back to your Cloudinsight account.</h2>
+
+            <section id="downloads">
+              <a class="zip_download_link" href="https://github.com/cloudinsight/cloudinsight-agent/zipball/master">Download this project as a .zip file</a>
+              <a class="tar_download_link" href="https://github.com/cloudinsight/cloudinsight-agent/tarball/master">Download this project as a tar.gz file</a>
+            </section>
+        </header>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div id="main_content_wrap" class="outer">
+      <section id="main_content" class="inner">
+        <h1>
+<a id="cloudinsight-agent" class="anchor" href="#cloudinsight-agent" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Cloudinsight Agent</h1>
+
+<p><a href="https://travis-ci.org/cloudinsight/cloudinsight-agent"><img src="https://travis-ci.org/cloudinsight/cloudinsight-agent.svg?branch=master" alt="Build Status"></a>
+<a href="https://goreportcard.com/report/github.com/cloudinsight/cloudinsight-agent"><img src="https://goreportcard.com/badge/github.com/cloudinsight/cloudinsight-agent" alt="Go Report Card"></a></p>
+
+<p><a href="README_zh-CN.md">中文版 README</a></p>
+
+<p>Cloudinsight Agent is written in Go for collecting metrics from the system it's
+running on, or from other services, and sending them to <a href="https://cloud.oneapm.com">Cloudinsight</a>.</p>
+
+<h2>
+<a id="building-from-source" class="anchor" href="#building-from-source" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Building from source</h2>
+
+<p>To build Cloudinsight Agent from the source code yourself you need to have a working Go environment with <a href="https://golang.org/doc/install">version 1.5 or greater installed</a>.</p>
+
+<pre><code>$ mkdir -p $GOPATH/src/github.com/cloudinsight
+$ cd $GOPATH/src/github.com/cloudinsight
+$ git clone https://github.com/cloudinsight/cloudinsight-agent
+$ cd cloudinsight-agent
+$ make build
+</code></pre>
+
+<h2>
+<a id="usage" class="anchor" href="#usage" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Usage</h2>
+
+<p>First you need to set a license key, which can be found at <a href="https://cloud.oneapm.com/#/settings">https://cloud.oneapm.com/#/settings</a>.</p>
+
+<pre><code>$ cp cloudinsight-agent.conf.example cloudinsight-agent.conf
+$ vi cloudinsight-agent.conf
+...
+license_key = "*********************"
+</code></pre>
+
+<p>Run the agent in foreground:</p>
+
+<pre><code>$ ./bin/cloudinsight-agent
+</code></pre>
+
+<h2>
+<a id="related-works" class="anchor" href="#related-works" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Related works</h2>
+
+<p>I have been influenced by the following great works:</p>
+
+<ul>
+<li><a href="https://github.com/datadog/dd-agent">ddagent</a></li>
+<li><a href="https://github.com/influxdata/telegraf">telegraf</a></li>
+<li><a href="https://github.com/prometheus/prometheus">prometheus</a></li>
+<li><a href="https://github.com/mackerelio/mackerel-agent">mackerel</a></li>
+</ul>
+      </section>
+    </div>
+
+    <!-- FOOTER  -->
+    <div id="footer_wrap" class="outer">
+      <footer class="inner">
+        <p class="copyright">Cloudinsight-agent maintained by <a href="https://github.com/cloudinsight">cloudinsight</a></p>
+        <p>Published with <a href="https://pages.github.com">GitHub Pages</a></p>
+      </footer>
+    </div>
+
+    
+
+  </body>
+</html>
