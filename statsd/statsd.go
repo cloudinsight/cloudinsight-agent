@@ -16,9 +16,6 @@ const (
 
 	// AllowedPendingMessages is the number of UDP messages allowed to queue up, once filled, the statsd server will start dropping packets
 	AllowedPendingMessages = 10000
-
-	// DefaultRecentPointThreshold means that we discard any points older than 1 hour.
-	DefaultRecentPointThreshold = 1 * time.Hour
 )
 
 // NewStatsd XXX
