@@ -59,12 +59,15 @@ func getInactivePids(pids []int32, cachedPids []int32) []int32 {
 	return complement
 }
 
+// Just make code more testable.
+var getPids = process.Pids
+
 // GetProcesses gets the processes list.
 func GetProcesses() []interface{} {
 	var err error
 	var processes []interface{}
 	var pids []int32
-	pids, _ = process.Pids()
+	pids, _ = getPids()
 
 	cachedPids := make([]int32, len(processCache))
 	i := 0

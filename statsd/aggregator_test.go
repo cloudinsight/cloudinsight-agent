@@ -14,5 +14,5 @@ func TestFormatter(t *testing.T) {
 	assert.Contains(t, actual, "metric:test.formatter")
 	assert.Contains(t, actual, "points:[[0 99]]")
 	assert.Contains(t, actual, "tags:[test]")
-	assert.Contains(t, actual, "interval:10")
+	assert.Contains(t, actual, "interval:30")
 }

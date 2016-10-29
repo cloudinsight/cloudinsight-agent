@@ -8,6 +8,7 @@ import (
 
 	"github.com/cloudinsight/cloudinsight-agent/common/api"
 	"github.com/cloudinsight/cloudinsight-agent/common/config"
+	"github.com/stretchr/testify/assert"
 )
 
 var (
@@ -20,16 +21,21 @@ func fakeAPI() *api.API {
 }
 
 func TestMetricHandler(t *testing.T) {
-	f := NewForwarder(&config.DefaultConfig)
+	conf := config.Config{
+		GlobalConfig: config.GlobalConfig{
+			CiURL:      "https://dc-cloud.oneapm.com",
+			BindHost:   "127.0.0.1",
+			ListenPort: 10010,
+			StatsdPort: 8251,
+		},
+	}
+
+	f := NewForwarder(&conf)
 	f.api = fakeAPI()
 	server := httptest.NewServer(http.HandlerFunc(f.metricHandler))
 	defer server.Close()
 
 	resp, err := http.Get(server.URL)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if resp.StatusCode != 200 {
-		t.Fatalf("Received non-200 response: %d\n", resp.StatusCode)
-	}
+	assert.NoError(t, err)
+	assert.Equal(t, 200, resp.StatusCode)
 }

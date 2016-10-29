@@ -1,16 +1,3 @@
-// Copyright 2015 The Prometheus Authors
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-// http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-
 package log
 
 import (
@@ -28,7 +15,7 @@ func TestFileLineLogging(t *testing.T) {
 	Debug("This debug-level line should not show up in the output.")
 	Infof("This %s-level line should show up in the output.", "info")
 
-	re := `^time=".*" level=info msg="This info-level line should show up in the output." source="log_test.go:29" \n$`
+	re := `^time=".*" level=info msg="This info-level line should show up in the output." source="log_test.go:16" \n$`
 	assert.Regexp(t, re, buf.String())
 }
 
@@ -51,20 +38,38 @@ func TestSetLevel(t *testing.T) {
 			t.Fatalf("SetLevel(%q) == %q, want %q", c.in, out, c.want)
 		}
 
-		logging()
-		lineSep := []byte{'\n'}
-		lines := bytes.Split(buf.Bytes(), lineSep)
-		length := len(lines) - 1
-		assert.Equal(t, length, c.count)
-		assert.Regexp(t, c.re, string(lines[length-1]))
+		for _, logger := range []logFunc{logging, loggingWithFormat, loggingWithNewLine} {
+			logger()
+			lineSep := []byte{'\n'}
+			lines := bytes.Split(buf.Bytes(), lineSep)
+			length := len(lines) - 1
+			assert.Equal(t, length, c.count)
+			assert.Regexp(t, c.re, string(lines[length-1]))
 
-		buf.Reset()
+			buf.Reset()
+		}
 	}
 }
 
+type logFunc func()
+
 func logging() {
-	Errorf("This error-level line should show up in the output.")
-	Warnf("This warn-level line should show up in the output.")
-	Infof("This info-level line should show up in the output.")
-	Debugf("This debug-level line should show up in the output.")
+	Error("This error-level line should show up in the output.")
+	Warn("This warn-level line should show up in the output.")
+	Info("This info-level line should show up in the output.")
+	Debug("This debug-level line should show up in the output.")
+}
+
+func loggingWithFormat() {
+	Errorf("This %s-level line should show up in the output.", "error")
+	Warnf("This %s-level line should show up in the output.", "warn")
+	Infof("This %s-level line should show up in the output.", "info")
+	Debugf("This %s-level line should show up in the output.", "debug")
+}
+
+func loggingWithNewLine() {
+	Errorln("This error-level line should show up in the output.")
+	Warnln("This warn-level line should show up in the output.")
+	Infoln("This info-level line should show up in the output.")
+	Debugln("This debug-level line should show up in the output.")
 }

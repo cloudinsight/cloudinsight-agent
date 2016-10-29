@@ -42,7 +42,7 @@ func (api *API) SubmitMetrics(data interface{}) error {
 		return fmt.Errorf("unable to marshal data, %s", err.Error())
 	}
 	// log.Debugf("Submitting metrics: %s", string(dataBytes))
-	compressed := api.compress(dataBytes)
+	compressed := compress(dataBytes)
 
 	return api.Post(api.GetURL("metrics"), &compressed)
 }
@@ -80,7 +80,7 @@ func (api *API) do(req *http.Request) (resp *http.Response, err error) {
 	return resp, nil
 }
 
-func (api *API) compress(b []byte) bytes.Buffer {
+func compress(b []byte) bytes.Buffer {
 	var buf bytes.Buffer
 	comp := zlib.NewWriter(&buf)
 

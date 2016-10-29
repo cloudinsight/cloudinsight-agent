@@ -16,25 +16,9 @@ import (
 // VERSION sets the agent version here.
 const VERSION = "0.1.0"
 
-var (
-	// DefaultConfig is the default top-level configuration.
-	DefaultConfig = Config{
-		GlobalConfig: DefaultGlobalConfig,
-	}
-
-	// DefaultGlobalConfig is the default global configuration.
-	DefaultGlobalConfig = GlobalConfig{
-		CiURL:      "https://dc-cloud.oneapm.com",
-		BindHost:   "127.0.0.1",
-		ListenPort: 10010,
-		StatsdPort: 8251,
-	}
-)
-
 // NewConfig creates a new instance of Config.
 func NewConfig(confPath string) (*Config, error) {
 	c := &Config{}
-	*c = DefaultConfig
 
 	err := c.LoadConfig(confPath)
 	if err != nil {
@@ -57,13 +41,14 @@ type Config struct {
 
 // GlobalConfig XXX
 type GlobalConfig struct {
-	CiURL      string `toml:"ci_url"`
-	LicenseKey string `toml:"license_key"`
-	Hostname   string `toml:"hostname"`
-	Tags       string `toml:"tags"`
-	BindHost   string `toml:"bind_host"`
-	ListenPort int    `toml:"listen_port"`
-	StatsdPort int    `toml:"statsd_port"`
+	CiURL           string `toml:"ci_url"`
+	LicenseKey      string `toml:"license_key"`
+	Hostname        string `toml:"hostname"`
+	Tags            string `toml:"tags"`
+	BindHost        string `toml:"bind_host"`
+	ListenPort      int    `toml:"listen_port"`
+	StatsdPort      int    `toml:"statsd_port"`
+	NonLocalTraffic bool   `toml:"non_local_traffic"`
 }
 
 // LoggingConfig XXX
@@ -75,22 +60,34 @@ type LoggingConfig struct {
 // Try to find a default config file at these locations (in order):
 //   1. $CWD/cloudinsight-agent.conf
 //   2. /etc/cloudinsight-agent/cloudinsight-agent.conf
-//   3. $HOME/.cloudinsight-agent/cloudinsight-agent.conf
 //
 func getDefaultConfigPath() (string, error) {
 	file := "cloudinsight-agent.conf"
 	etcfile := "/etc/cloudinsight-agent/cloudinsight-agent.conf"
-	homefile := os.ExpandEnv("$HOME/.cloudinsight-agent/cloudinsight-agent.conf")
-	for _, path := range []string{file, etcfile, homefile} {
-		if _, err := os.Stat(path); err == nil {
-			log.Infof("Using config file: %s", path)
-			return path, nil
+	return getPath(file, etcfile)
+}
+
+// Try to find plugins path at these locations (in order):
+//   1. $CONFPATH/collector/conf.d
+//   2. $CONFPATH/../../../collector/conf.d  **This is just for test case.**
+//   3. /etc/cloudinsight-agent/conf.d
+//
+func getPluginsPath(confPath string) (string, error) {
+	path := filepath.Join(filepath.Dir(confPath), "collector/conf.d")
+	testpath := filepath.Join(filepath.Dir(confPath), "../../../collector/conf.d")
+	etcpath := "/etc/cloudinsight-agent/conf.d"
+	return getPath(path, testpath, etcpath)
+}
+
+func getPath(paths ...string) (string, error) {
+	for _, p := range paths {
+		if _, err := os.Stat(p); err == nil {
+			return p, nil
 		}
 	}
 
 	// if we got here, we didn't find a file in a default location
-	return "", fmt.Errorf("No config file specified, and could not find one"+
-		" in %s, or %s", etcfile, homefile)
+	return "", fmt.Errorf("Could not find path in %s", paths)
 }
 
 // LoadConfig XXX
@@ -100,21 +97,21 @@ func (c *Config) LoadConfig(confPath string) error {
 		if confPath, err = getDefaultConfigPath(); err != nil {
 			return err
 		}
+		log.Infof("Using config file: %s", confPath)
 	}
 
 	if _, err = toml.DecodeFile(confPath, c); err != nil {
 		return err
 	}
 
-	patterns := [2]string{"*.yaml", "*.yaml.default"}
-	var files []string
-	root, err := os.Getwd()
+	pluginsPath, err := getPluginsPath(confPath)
 	if err != nil {
-		log.Errorf("Failed to get root path %s", err)
 		return err
 	}
+	patterns := [2]string{"*.yaml", "*.yaml.default"}
+	var files []string
 	for _, pattern := range patterns {
-		m, _ := filepath.Glob(filepath.Join(root, "collector/conf.d", pattern))
+		m, _ := filepath.Glob(filepath.Join(pluginsPath, pattern))
 		files = append(files, m...)
 	}
 
@@ -161,19 +158,27 @@ func (c *Config) PluginNames() []string {
 	return name
 }
 
+func (c *Config) getBindHost() string {
+	host := c.GlobalConfig.BindHost
+	if c.GlobalConfig.NonLocalTraffic {
+		host = ""
+	}
+	return host
+}
+
 // GetForwarderAddr gets the address that Forwarder listening to.
 func (c *Config) GetForwarderAddr() string {
-	return fmt.Sprintf("%s:%d", c.GlobalConfig.BindHost, c.GlobalConfig.ListenPort)
+	return fmt.Sprintf("%s:%d", c.getBindHost(), c.GlobalConfig.ListenPort)
 }
 
 // GetForwarderAddrWithScheme gets the address of Forwarder with scheme prefix.
 func (c *Config) GetForwarderAddrWithScheme() string {
-	return fmt.Sprintf("http://%s", c.GetForwarderAddr())
+	return fmt.Sprintf("http://%s:%d", c.GlobalConfig.BindHost, c.GlobalConfig.ListenPort)
 }
 
 // GetStatsdAddr gets the address that Statsd listening to.
 func (c *Config) GetStatsdAddr() string {
-	return fmt.Sprintf("%s:%d", c.GlobalConfig.BindHost, c.GlobalConfig.StatsdPort)
+	return fmt.Sprintf("%s:%d", c.getBindHost(), c.GlobalConfig.StatsdPort)
 }
 
 // GetHostname gets the hostname from os itself if not set in the agent configuration.

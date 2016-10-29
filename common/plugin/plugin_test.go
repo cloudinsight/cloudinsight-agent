@@ -8,10 +8,7 @@ import (
 
 func TestLoadConfig(t *testing.T) {
 	conf, err := LoadConfig("testdata/nginx.yaml")
-	if err != nil {
-		t.Fatalf("couldn't load configuration: %v", err)
-	}
-
+	assert.NoError(t, err)
 	assert.NotNil(t, conf.InitConfig)
 	assert.NotNil(t, conf.Instances)
 
@@ -31,15 +28,11 @@ func TestLoadConfig(t *testing.T) {
 
 func TestBadConfig(t *testing.T) {
 	_, err := LoadConfig("testdata/nginx_bad.yaml")
-	if err == nil {
-		t.Errorf("Expected error parsing %s but got none", "testdata/nginx_bad.yaml")
-	}
+	assert.Error(t, err)
 }
 
 func TestEmptyConfig(t *testing.T) {
 	_, err := LoadConfig("")
-	if err == nil {
-		t.Fatal("Expected error but got none")
-	}
+	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "no such file or directory")
 }

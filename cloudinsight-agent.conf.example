@@ -8,20 +8,24 @@ ci_url = "https://dc-cloud.oneapm.com"
 # You can find it at https://cloud.oneapm.com/#/settings
 license_key = ""
 
-# Force the hostname to whatever you want.
-# hostname = "mymachine.mydomain"
+# Set the hostname to whatever you want, if empty use your system hostname.
+hostname = ""
 
 # Set the host's tags
-# tags = "mytag, env:prod, role:database"
+tags = ""
 
 # The loopback address the Forwarder and Statsd will bind.
-# bind_host = "localhost"
+bind_host = "127.0.0.1"
 
 # Change port the Agent is listening to
-# listen_port = 10010
+listen_port = 10010
 
 # Change port the Statsd is listening to
-# statsd_port = 8251
+statsd_port = 8251
+
+# Allow non-local traffic to this Agent
+# This is required when using this Agent as a proxy for other Agents that might not have an internet connection
+non_local_traffic = false
 
 
 # ========================================================================== #

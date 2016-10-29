@@ -5,7 +5,7 @@ import (
 	"github.com/cloudinsight/cloudinsight-agent/common/metric"
 )
 
-const interval = 10
+const interval = 30
 
 // NewAggregator XXX
 func NewAggregator(
