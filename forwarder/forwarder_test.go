@@ -3,6 +3,8 @@ package forwarder
 import (
 	"net/http"
 	"net/http/httptest"
+	"os"
+	"os/exec"
 	"testing"
 	"time"
 
@@ -68,13 +70,37 @@ func TestRun(t *testing.T) {
 	resp, err := http.Get("http://127.0.0.1:9999/infrastructure/metrics")
 	assert.NoError(t, err)
 	assert.Equal(t, 200, resp.StatusCode)
+}
 
-	close(shutdown)
+func TestShutdown(t *testing.T) {
+	if os.Getenv("BE_SHUTDOWN") == "1" {
+		shutdown := make(chan struct{})
+		conf := config.Config{
+			GlobalConfig: config.GlobalConfig{
+				BindHost:   "127.0.0.1",
+				ListenPort: 1234,
+			},
+		}
 
-	// Waiting for the forwarder server stopping.
-	time.Sleep(time.Millisecond)
+		go func() {
+			f := NewForwarder(&conf)
+			_ = f.Run(shutdown)
+		}()
 
-	resp, err = http.Get("http://127.0.0.1:9999/infrastructure/metrics")
-	assert.Error(t, err)
-	assert.Nil(t, resp)
+		// Waiting for the forwarder server running.
+		time.Sleep(time.Millisecond)
+
+		close(shutdown)
+
+		// Waiting for the forwarder server stopping.
+		time.Sleep(time.Millisecond)
+		return
+	}
+	cmd := exec.Command(os.Args[0], "-test.run=TestShutdown")
+	cmd.Env = append(os.Environ(), "BE_SHUTDOWN=1")
+	err := cmd.Run()
+	if e, ok := err.(*exec.ExitError); ok && !e.Success() {
+		return
+	}
+	t.Fatalf("process ran with err %v, want exit status 1", err)
 }
