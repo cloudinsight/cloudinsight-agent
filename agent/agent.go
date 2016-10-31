@@ -46,8 +46,6 @@ func (a *Agent) collect(
 	interval time.Duration,
 	metricC chan metric.Metric,
 ) error {
-	defer panicRecover(plugin)
-
 	ticker := time.NewTicker(interval)
 	defer ticker.Stop()
 
@@ -80,6 +78,8 @@ func collectWithTimeout(
 	defer ticker.Stop()
 	done := make(chan error)
 	go func() {
+		defer panicRecover(plugin)
+
 		for _, instance := range plugin.Config.Instances {
 			done <- plugin.Plugin.Check(agg, instance)
 			agg.Flush()

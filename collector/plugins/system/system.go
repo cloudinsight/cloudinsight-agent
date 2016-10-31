@@ -293,6 +293,10 @@ func (s *Stats) collectDiskIOMetrics(agg metric.Aggregator) error {
 		// Compute ioawait
 		lastStats := s.io.lastIOStats[name]
 		timeDelta := time.Now().Unix() - s.io.lastCollectionTime
+		if timeDelta == 0 {
+			continue
+		}
+
 		ioReadTimeDelta := float64(io.ReadTime-lastStats.ReadTime) / float64(timeDelta)
 		ioWriteTimeDelta := float64(io.WriteTime-lastStats.WriteTime) / float64(timeDelta)
 		ioReadCountDelta := float64(io.ReadCount-lastStats.ReadCount) / float64(timeDelta)

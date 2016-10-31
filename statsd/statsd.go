@@ -43,7 +43,7 @@ type Statsd struct {
 // Run XXX
 func (s *Statsd) Run(shutdown chan struct{}) error {
 	var wg sync.WaitGroup
-	interval := 10 * time.Second
+	interval := 30 * time.Second
 
 	// channel shared between all Plugin threads for collecting metrics
 	metricC := make(chan metric.Metric, 10000)
@@ -52,14 +52,14 @@ func (s *Statsd) Run(shutdown chan struct{}) error {
 	go func() {
 		defer wg.Done()
 		if err := s.listen(shutdown); err != nil {
-			log.Info(err)
+			log.Error(err)
 		}
 	}()
 
 	go func() {
 		defer wg.Done()
 		if err := s.reporter.Run(shutdown, metricC, interval); err != nil {
-			log.Infof("Reporter routine failed, exiting: %s", err.Error())
+			log.Errorf("Reporter routine failed, exiting: %s", err.Error())
 			close(shutdown)
 		}
 	}()
@@ -67,11 +67,12 @@ func (s *Statsd) Run(shutdown chan struct{}) error {
 	go func() {
 		defer wg.Done()
 		if err := s.parser(shutdown, metricC, interval); err != nil {
-			log.Info(err)
+			log.Error(err)
 		}
 	}()
 
 	wg.Wait()
+	close(s.in)
 	return nil
 }
 
@@ -85,7 +86,6 @@ func (s *Statsd) listen(shutdown chan struct{}) error {
 	if err != nil {
 		log.Fatalln("Error listening:", err)
 	}
-	defer s.closeConn(conn)
 
 	log.Infoln("Statsd listening on:", addr)
 
@@ -100,12 +100,6 @@ func (s *Statsd) listen(shutdown chan struct{}) error {
 		default:
 			s.handleClient(conn)
 		}
-	}
-}
-
-func (s *Statsd) closeConn(conn *net.UDPConn) {
-	if err := conn.Close(); err != nil {
-		log.Info(err)
 	}
 }
 

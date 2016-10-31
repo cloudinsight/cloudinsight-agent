@@ -62,7 +62,7 @@ func (f *Forwarder) Run(shutdown chan struct{}) error {
 
 	go func() {
 		if err := s.Serve(l); err != nil {
-			log.Fatal(err)
+			log.Error(err)
 		}
 	}()
 

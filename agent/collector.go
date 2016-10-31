@@ -54,8 +54,10 @@ func (c *Collector) Post(metrics []interface{}) error {
 				hostTags[i] = strings.TrimSpace(tag)
 			}
 
-			payload.HostTags = map[string]interface{}{
-				"system": hostTags,
+			if len(hostTags) > 0 {
+				payload.HostTags = map[string]interface{}{
+					"system": hostTags,
+				}
 			}
 		}
 	}

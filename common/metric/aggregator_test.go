@@ -125,12 +125,12 @@ func TestFlush(t *testing.T) {
 
 	testm := metrics[0]
 	assert.Equal(t, "agg.test", testm.Name)
-	assert.Equal(t, float64(1), getValue(testm))
+	assert.EqualValues(t, 1, testm.Value)
 	assert.Nil(t, testm.Tags)
 
 	testm = metrics[1]
 	assert.Equal(t, "agg.test", testm.Name)
-	assert.Equal(t, float64(2), getValue(testm))
+	assert.EqualValues(t, 2, testm.Value)
 	assert.Equal(t, []string{"agg:test"}, testm.Tags)
 
 	now := time.Now().UnixNano()
@@ -143,7 +143,7 @@ func TestFlush(t *testing.T) {
 	a.Flush()
 	testm = <-a.metrics
 	assert.Equal(t, "agg.test", testm.Name)
-	assert.Equal(t, float64(3), getValue(testm))
+	assert.EqualValues(t, 3, testm.Value)
 	assert.Equal(t, []string{"agg:test"}, testm.Tags)
 	assert.Equal(t, now, testm.Timestamp)
 }
@@ -173,12 +173,12 @@ func TestCounterNormalization(t *testing.T) {
 
 	testm := metrics[0]
 	assert.Equal(t, "float", testm.Name)
-	assert.Equal(t, float64(0.5), getValue(testm))
+	assert.EqualValues(t, 0.5, testm.Value)
 	assert.Equal(t, "myhost", testm.Hostname)
 
 	testm = metrics[1]
 	assert.Equal(t, "int", testm.Name)
-	assert.Equal(t, float64(2), getValue(testm))
+	assert.EqualValues(t, 2, testm.Value)
 	assert.Equal(t, "myhost", testm.Hostname)
 }
 
@@ -209,10 +209,10 @@ func TestHistogramNormalization(t *testing.T) {
 	sort.Sort(MetricSorter(metrics))
 
 	testm := metrics[2]
-	assert.Equal(t, float64(0.5), getValue(testm))
+	assert.EqualValues(t, 0.5, testm.Value)
 
 	testm = metrics[8]
-	assert.Equal(t, float64(2), getValue(testm))
+	assert.EqualValues(t, 2, testm.Value)
 }
 
 func TestTags(t *testing.T) {
@@ -240,19 +240,19 @@ func TestTags(t *testing.T) {
 
 	testm := metrics[0]
 	assert.Equal(t, "gauge", testm.Name)
-	assert.Equal(t, float64(3), getValue(testm))
+	assert.EqualValues(t, 3, testm.Value)
 	assert.Nil(t, testm.Tags)
 	assert.Equal(t, "myhost", testm.Hostname)
 
 	testm = metrics[1]
 	assert.Equal(t, "gauge", testm.Name)
-	assert.Equal(t, float64(12), getValue(testm))
+	assert.EqualValues(t, 12, testm.Value)
 	assert.Equal(t, []string{"tag1", "tag2"}, testm.Tags)
 	assert.Equal(t, "myhost", testm.Hostname)
 
 	testm = metrics[2]
 	assert.Equal(t, "gauge", testm.Name)
-	assert.Equal(t, float64(16), getValue(testm))
+	assert.EqualValues(t, 16, testm.Value)
 	assert.Equal(t, []string{"tag3", "tag4"}, testm.Tags)
 	assert.Equal(t, "myhost", testm.Hostname)
 }
@@ -282,25 +282,25 @@ func TestMagicTags(t *testing.T) {
 
 	testm := metrics[0]
 	assert.Equal(t, "my.gauge.a", testm.Name)
-	assert.Equal(t, float64(1), getValue(testm))
+	assert.EqualValues(t, 1, testm.Value)
 	assert.Nil(t, testm.Tags)
 	assert.Equal(t, "test-a", testm.Hostname)
 
 	testm = metrics[1]
 	assert.Equal(t, "my.gauge.b", testm.Name)
-	assert.Equal(t, float64(12), getValue(testm))
+	assert.EqualValues(t, 12, testm.Value)
 	assert.Equal(t, []string{"tag1", "tag2"}, testm.Tags)
 	assert.Equal(t, "test-b", testm.Hostname)
 
 	testm = metrics[2]
 	assert.Equal(t, "my.gauge.c", testm.Name)
-	assert.Equal(t, float64(10), getValue(testm))
+	assert.EqualValues(t, 10, testm.Value)
 	assert.Equal(t, []string{"tag3"}, testm.Tags)
 	assert.Empty(t, testm.DeviceName)
 
 	testm = metrics[3]
 	assert.Equal(t, "my.gauge.c", testm.Name)
-	assert.Equal(t, float64(16), getValue(testm))
+	assert.EqualValues(t, 16, testm.Value)
 	assert.Equal(t, []string{"tag3"}, testm.Tags)
 	assert.Equal(t, "floppy", testm.DeviceName)
 }
@@ -329,16 +329,16 @@ func TestCounter(t *testing.T) {
 
 	testm := metrics[0]
 	assert.Equal(t, "my.first.counter", testm.Name)
-	assert.Equal(t, float64(6), getValue(testm))
+	assert.EqualValues(t, 6, testm.Value)
 	assert.Equal(t, "myhost", testm.Hostname)
 
 	testm = metrics[1]
 	assert.Equal(t, "my.second.counter", testm.Name)
-	assert.Equal(t, float64(1), getValue(testm))
+	assert.EqualValues(t, 1, testm.Value)
 
 	testm = metrics[2]
 	assert.Equal(t, "my.third.counter", testm.Name)
-	assert.Equal(t, float64(3), getValue(testm))
+	assert.EqualValues(t, 3, testm.Value)
 
 	a.Flush()
 	assert.Len(t, a.metrics, 3)
@@ -349,15 +349,15 @@ func TestCounter(t *testing.T) {
 
 	testm = metrics[0]
 	assert.Equal(t, "my.first.counter", testm.Name)
-	assert.Equal(t, float64(0), getValue(testm))
+	assert.EqualValues(t, 0, testm.Value)
 
 	testm = metrics[1]
 	assert.Equal(t, "my.second.counter", testm.Name)
-	assert.Equal(t, float64(0), getValue(testm))
+	assert.EqualValues(t, 0, testm.Value)
 
 	testm = metrics[2]
 	assert.Equal(t, "my.third.counter", testm.Name)
-	assert.Equal(t, float64(0), getValue(testm))
+	assert.EqualValues(t, 0, testm.Value)
 }
 
 func TestSampledCounter(t *testing.T) {
@@ -375,7 +375,7 @@ func TestSampledCounter(t *testing.T) {
 
 	testm := <-a.metrics
 	assert.Equal(t, "sampled.counter", testm.Name)
-	assert.Equal(t, float64(2), getValue(testm))
+	assert.EqualValues(t, 2, testm.Value)
 }
 
 func TestGauge(t *testing.T) {
@@ -401,12 +401,12 @@ func TestGauge(t *testing.T) {
 
 	testm := metrics[0]
 	assert.Equal(t, "my.first.gauge", testm.Name)
-	assert.Equal(t, float64(5), getValue(testm))
+	assert.EqualValues(t, 5, testm.Value)
 	assert.Equal(t, "myhost", testm.Hostname)
 
 	testm = metrics[1]
 	assert.Equal(t, "my.second.gauge", testm.Name)
-	assert.Equal(t, float64(1.5), getValue(testm))
+	assert.EqualValues(t, 1.5, testm.Value)
 
 	// Ensure that old gauges get dropped due to old timestamps
 	a.Add("gauge", NewMetric("my.first.gauge", 5))
@@ -425,7 +425,7 @@ func TestGauge(t *testing.T) {
 
 	testm = <-a.metrics
 	assert.Equal(t, "my.first.gauge", testm.Name)
-	assert.Equal(t, float64(5), getValue(testm))
+	assert.EqualValues(t, 5, testm.Value)
 	assert.Equal(t, "myhost", testm.Hostname)
 }
 
@@ -444,7 +444,7 @@ func TestSampledGauge(t *testing.T) {
 
 	testm := <-a.metrics
 	assert.Equal(t, "sampled.gauge", testm.Name)
-	assert.Equal(t, float64(10), getValue(testm))
+	assert.EqualValues(t, 10, testm.Value)
 }
 
 func TestSets(t *testing.T) {
@@ -467,7 +467,7 @@ func TestSets(t *testing.T) {
 
 	testm := <-a.metrics
 	assert.Equal(t, "my.set", testm.Name)
-	assert.Equal(t, float64(3), getValue(testm))
+	assert.EqualValues(t, 3, testm.Value)
 
 	// Assert there are no more sets
 	a.Flush()
@@ -494,7 +494,7 @@ func TestStringSets(t *testing.T) {
 
 	testm := <-a.metrics
 	assert.Equal(t, "my.set", testm.Name)
-	assert.Equal(t, float64(3), getValue(testm))
+	assert.EqualValues(t, 3, testm.Value)
 
 	// Assert there are no more sets
 	a.Flush()
@@ -519,7 +519,7 @@ func TestRate(t *testing.T) {
 	// Check that the rate is calculated correctly
 	testm := <-a.metrics
 	assert.Equal(t, "my.rate", testm.Name)
-	assert.Equal(t, float64(30), getValue(testm))
+	assert.EqualValues(t, 30, testm.Value)
 
 	// Assert that no more rates are given
 	a.Flush()
@@ -578,28 +578,28 @@ func TestHistogram(t *testing.T) {
 
 	testm := metrics[0]
 	assert.Equal(t, "my.p.95percentile", testm.Name)
-	assert.Equal(t, float64(95), getValue(testm))
+	assert.EqualValues(t, 95, testm.Value)
 	assert.Equal(t, "myhost", testm.Hostname)
 
 	testm = metrics[1]
 	assert.Equal(t, "my.p.avg", testm.Name)
-	assert.Equal(t, float64(50.5), getValue(testm))
+	assert.EqualValues(t, 50.5, testm.Value)
 
 	testm = metrics[2]
 	assert.Equal(t, "my.p.count", testm.Name)
-	assert.Equal(t, float64(4000), getValue(testm))
+	assert.EqualValues(t, 4000, testm.Value)
 
 	testm = metrics[3]
 	assert.Equal(t, "my.p.max", testm.Name)
-	assert.Equal(t, float64(100), getValue(testm))
+	assert.EqualValues(t, 100, testm.Value)
 
 	testm = metrics[4]
 	assert.Equal(t, "my.p.median", testm.Name)
-	assert.Equal(t, float64(50), getValue(testm))
+	assert.EqualValues(t, 50, testm.Value)
 
 	testm = metrics[5]
 	assert.Equal(t, "my.p.min", testm.Name)
-	assert.Equal(t, float64(1), getValue(testm))
+	assert.EqualValues(t, 1, testm.Value)
 
 	// Ensure that histograms are reset.
 	a.Flush()
@@ -627,9 +627,9 @@ func TestSampledHistogram(t *testing.T) {
 
 	for _, m := range metrics {
 		if m.Name == "sampled.hist.count" {
-			assert.Equal(t, float64(2), getValue(m))
+			assert.EqualValues(t, 2, m.Value)
 		} else {
-			assert.Equal(t, float64(5), getValue(m))
+			assert.EqualValues(t, 5, m.Value)
 		}
 	}
 }
@@ -661,11 +661,11 @@ func TestBatchSubmission(t *testing.T) {
 
 	testm := metrics[0]
 	assert.Equal(t, "counter", testm.Name)
-	assert.Equal(t, float64(2), getValue(testm))
+	assert.EqualValues(t, 2, testm.Value)
 
 	testm = metrics[1]
 	assert.Equal(t, "gauge", testm.Name)
-	assert.Equal(t, float64(1), getValue(testm))
+	assert.EqualValues(t, 1, testm.Value)
 }
 
 func TestMonkeyBatchingWithoutTags(t *testing.T) {
@@ -714,7 +714,7 @@ func TestMonkeyBatchingWithoutTags(t *testing.T) {
 	sort.Sort(MetricSorter(metricsRef))
 
 	for i := 0; i < 6; i++ {
-		assert.Equal(t, getValue(metrics[i]), getValue(metricsRef[i]))
+		assert.EqualValues(t, metrics[i].Value, metricsRef[i].Value)
 	}
 }
 
@@ -762,7 +762,7 @@ func TestMonkeyBatchingWithTags(t *testing.T) {
 	sort.Sort(MetricSorter(metricsRef))
 
 	for i := 0; i < 3; i++ {
-		assert.Equal(t, getValue(metrics[i]), getValue(metricsRef[i]))
+		assert.EqualValues(t, metrics[i].Value, metricsRef[i].Value)
 		assert.Equal(t, metrics[i].Tags, metricsRef[i].Tags)
 	}
 }
@@ -814,7 +814,7 @@ func TestMonkeyBatchingWithTagsAndSamplerate(t *testing.T) {
 	sort.Sort(MetricSorter(metricsRef))
 
 	for i := 0; i < 9; i++ {
-		assert.Equal(t, getValue(metrics[i]), getValue(metricsRef[i]))
+		assert.EqualValues(t, metrics[i].Value, metricsRef[i].Value)
 		assert.Equal(t, metrics[i].Tags, metricsRef[i].Tags)
 	}
 }

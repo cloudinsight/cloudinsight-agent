@@ -11,31 +11,70 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-var (
-	fakeURL        = "http://test.cloudinsight.com"
-	fakeLicenseKey = "123456"
-)
+func TestMetricHandler(t *testing.T) {
+	conf := config.Config{}
+	f := NewForwarder(&conf)
 
-func fakeAPI() *api.API {
-	return api.NewAPI(fakeURL, fakeLicenseKey, 10*time.Second)
+	ts := httptest.NewServer(http.HandlerFunc(f.metricHandler))
+	defer ts.Close()
+
+	tsRemote := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		assert.Equal(t, "/infrastructure/metrics", req.URL.Path)
+		assert.Equal(t, "POST", req.Method)
+	}))
+	defer tsRemote.Close()
+
+	f.api = api.NewAPI(
+		tsRemote.URL,
+		"dummy-key",
+		5*time.Second,
+	)
+
+	resp, err := http.Get(ts.URL)
+	assert.NoError(t, err)
+	assert.Equal(t, 200, resp.StatusCode)
 }
 
-func TestMetricHandler(t *testing.T) {
+func TestRun(t *testing.T) {
+	shutdown := make(chan struct{})
 	conf := config.Config{
 		GlobalConfig: config.GlobalConfig{
-			CiURL:      "https://dc-cloud.oneapm.com",
 			BindHost:   "127.0.0.1",
-			ListenPort: 10010,
-			StatsdPort: 8251,
+			ListenPort: 9999,
 		},
 	}
 
-	f := NewForwarder(&conf)
-	f.api = fakeAPI()
-	server := httptest.NewServer(http.HandlerFunc(f.metricHandler))
-	defer server.Close()
+	go func() {
+		f := NewForwarder(&conf)
 
-	resp, err := http.Get(server.URL)
+		tsRemote := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+			assert.Equal(t, "/infrastructure/metrics", req.URL.Path)
+			assert.Equal(t, "POST", req.Method)
+		}))
+		defer tsRemote.Close()
+
+		f.api = api.NewAPI(
+			tsRemote.URL,
+			"dummy-key",
+			5*time.Second,
+		)
+		err := f.Run(shutdown)
+		assert.NoError(t, err)
+	}()
+
+	// Waiting for the forwarder server running.
+	time.Sleep(time.Millisecond)
+
+	resp, err := http.Get("http://127.0.0.1:9999/infrastructure/metrics")
 	assert.NoError(t, err)
 	assert.Equal(t, 200, resp.StatusCode)
+
+	close(shutdown)
+
+	// Waiting for the forwarder server stopping.
+	time.Sleep(time.Millisecond)
+
+	resp, err = http.Get("http://127.0.0.1:9999/infrastructure/metrics")
+	assert.Error(t, err)
+	assert.Nil(t, resp)
 }
