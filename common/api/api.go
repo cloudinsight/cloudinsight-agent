@@ -3,6 +3,7 @@ package api
 import (
 	"bytes"
 	"compress/zlib"
+	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -23,14 +24,26 @@ type API struct {
 }
 
 // NewAPI XXX
-func NewAPI(ciURL string, licenseKey string, timeout time.Duration) *API {
+func NewAPI(ciURL string, licenseKey string, timeout time.Duration, proxy ...string) *API {
 	ciURL = strings.TrimSuffix(ciURL, "/")
+	client := http.Client{
+		Timeout: timeout,
+	}
+	if len(proxy) > 0 && proxy[0] != "" {
+		proxyURL, err := url.Parse(proxy[0])
+		if err != nil {
+			log.Fatalf("Error parsing proxy URL %s, %s", proxy[0], err.Error())
+		}
+		client.Transport = &http.Transport{
+			Proxy:           http.ProxyURL(proxyURL),
+			TLSClientConfig: &tls.Config{},
+		}
+	}
+
 	api := &API{
 		ciURL:      ciURL,
 		licenseKey: licenseKey,
-		client: &http.Client{
-			Timeout: timeout,
-		},
+		client:     &client,
 	}
 	return api
 }

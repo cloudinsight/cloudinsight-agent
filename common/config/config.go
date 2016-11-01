@@ -45,6 +45,7 @@ type GlobalConfig struct {
 	LicenseKey      string `toml:"license_key"`
 	Hostname        string `toml:"hostname"`
 	Tags            string `toml:"tags"`
+	Proxy           string `toml:"proxy"`
 	BindHost        string `toml:"bind_host"`
 	ListenPort      int    `toml:"listen_port"`
 	StatsdPort      int    `toml:"statsd_port"`

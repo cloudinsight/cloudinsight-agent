@@ -12,7 +12,7 @@ import (
 
 // NewForwarder creates a new instance of Forwarder.
 func NewForwarder(conf *config.Config) *Forwarder {
-	api := api.NewAPI(conf.GlobalConfig.CiURL, conf.GlobalConfig.LicenseKey, 10*time.Second)
+	api := api.NewAPI(conf.GlobalConfig.CiURL, conf.GlobalConfig.LicenseKey, 10*time.Second, conf.GlobalConfig.Proxy)
 	return &Forwarder{
 		api:  api,
 		conf: conf,

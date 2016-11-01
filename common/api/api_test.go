@@ -29,6 +29,17 @@ func TestNewAPI(t *testing.T) {
 	assert.Equal(t, expectedAPI, api)
 }
 
+func TestNewAPIWithProxy(t *testing.T) {
+	proxy := "http://foo:bar@localhost:8118"
+	api := NewAPI(
+		"http://example.com/",
+		"dummy-key",
+		5*time.Second,
+		proxy,
+	)
+	assert.NotNil(t, api.client.Transport)
+}
+
 func TestGetURL(t *testing.T) {
 	api := NewAPI(
 		"http://example.com/",
