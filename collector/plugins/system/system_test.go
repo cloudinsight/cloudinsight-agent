@@ -234,7 +234,7 @@ func TestCollectNetMetrics(t *testing.T) {
 	mps.On("NetIO").Return([]net.IOCountersStat{netio}, nil)
 
 	netprotos := []net.ProtoCountersStat{
-		net.ProtoCountersStat{
+		{
 			Protocol: "Udp",
 			Stats: map[string]int64{
 				"InDatagrams": 4655,

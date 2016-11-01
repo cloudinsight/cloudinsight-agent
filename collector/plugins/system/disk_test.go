@@ -112,12 +112,14 @@ func TestDiskStats(t *testing.T) {
 	// // We expect 6 more DiskMetrics to show up with an explicit match on "/"
 	// // and /home not matching the /dev in MountPoints
 	err = (&DiskStats{ps: &mps, MountPoints: []string{"/", "/dev"}}).Check(agg, nil)
+	require.NoError(t, err)
 	agg.Flush()
 	assert.Len(t, metricC, 8)
 
 	// // We should see all the diskpoints as MountPoints includes both
 	// // / and /home
 	err = (&DiskStats{ps: &mps, MountPoints: []string{"/", "/home"}}).Check(agg, nil)
+	require.NoError(t, err)
 	agg.Flush()
 	assert.Len(t, metricC, expectedAllDiskMetrics+8)
 }
