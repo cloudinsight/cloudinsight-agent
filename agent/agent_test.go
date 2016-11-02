@@ -15,9 +15,16 @@ const checkInterval = time.Second
 type testPlugin struct{}
 
 func (p *testPlugin) Check(agg metric.Aggregator, instance plugin.Instance) error {
+	var tags []string
+	if t, ok := instance["tags"]; ok {
+		if ts, ok := t.([]string); ok {
+			tags = ts
+		}
+	}
 	agg.Add("gauge", metric.Metric{
 		Name:  "test",
 		Value: 10,
+		Tags:  tags,
 	})
 	return nil
 }
@@ -35,7 +42,7 @@ func (p *testTimeoutPlugin) Check(agg metric.Aggregator, instance plugin.Instanc
 		Name:  "test.timeout",
 		Value: 20,
 	})
-	time.Sleep(2 * checkInterval)
+	time.Sleep(checkInterval)
 	return nil
 }
 
@@ -76,6 +83,50 @@ func TestCollectWithPanic(t *testing.T) {
 	testm := <-metricC
 	assert.Equal(t, "test", testm.Name)
 	assert.EqualValues(t, 10, testm.Value)
+	close(shutdown)
+
+	// Waiting for collect goroutines stopping.
+	time.Sleep(time.Millisecond)
+}
+
+func TestCollectWithMultiInstances(t *testing.T) {
+	shutdown := make(chan struct{})
+	metricC := make(chan metric.Metric, 5)
+	defer close(metricC)
+
+	rp := &plugin.RunningPlugin{
+		Name:   "testPlugin",
+		Plugin: &testPlugin{},
+		Config: &plugin.Config{
+			Instances: []plugin.Instance{
+				map[string]interface{}{"tags": []string{"foo"}},
+				map[string]interface{}{"tags": []string{"bar"}},
+			},
+		},
+	}
+
+	a := &Agent{
+		conf: &config.Config{},
+	}
+
+	go func() {
+		err := a.collect(shutdown, rp, checkInterval, metricC)
+		assert.NoError(t, err)
+	}()
+
+	// Waiting for collect goroutines running.
+	time.Sleep(200 * time.Millisecond)
+
+	assert.Len(t, metricC, 2)
+	testm := <-metricC
+	assert.Equal(t, "test", testm.Name)
+	assert.EqualValues(t, 10, testm.Value)
+	assert.Equal(t, []string{"foo"}, testm.Tags)
+
+	testm = <-metricC
+	assert.Equal(t, "test", testm.Name)
+	assert.EqualValues(t, 10, testm.Value)
+	assert.Equal(t, []string{"bar"}, testm.Tags)
 	close(shutdown)
 
 	// Waiting for collect goroutines stopping.

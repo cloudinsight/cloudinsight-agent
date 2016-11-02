@@ -70,38 +70,41 @@ func (a *Agent) collect(
 //   over.
 func collectWithTimeout(
 	shutdown chan struct{},
-	plugin *plugin.RunningPlugin,
+	rp *plugin.RunningPlugin,
 	agg metric.Aggregator,
 	timeout time.Duration,
 ) {
 	ticker := time.NewTicker(timeout)
 	defer ticker.Stop()
 	done := make(chan error)
-	go func() {
-		defer panicRecover(plugin)
 
-		for _, instance := range plugin.Config.Instances {
-			done <- plugin.Plugin.Check(agg, instance)
+	var wg sync.WaitGroup
+	for _, instance := range rp.Config.Instances {
+
+		wg.Add(1)
+		go func(inst plugin.Instance) {
+			defer panicRecover(rp)
+			defer wg.Done()
+
+			done <- rp.Plugin.Check(agg, inst)
 			agg.Flush()
-		}
-	}()
+		}(instance)
 
-	for {
 		select {
 		case err := <-done:
 			if err != nil {
-				log.Infof("ERROR in plugin [%s]: %s", plugin.Name, err)
+				log.Infof("ERROR in plugin [%s]: %s", rp.Name, err)
 			}
-			return
 		case <-ticker.C:
 			log.Infof("ERROR: plugin [%s] took longer to collect than "+
 				"collection interval (%s)",
-				plugin.Name, timeout)
-			continue
+				rp.Name, timeout)
 		case <-shutdown:
 			return
 		}
 	}
+
+	wg.Wait()
 }
 
 // Test verifies that we can 'collect' from all Plugins with their configured
