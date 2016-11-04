@@ -1,6 +1,20 @@
 init_config:
 
 instances:
+  # For every instance, you need an `nginx_status_url` and can optionally
+  # supply a list of tags.  This plugin requires nginx to be compiled with
+  # the nginx stub status module option, and activated with the correct
+  # configuration stanza.  On debian/ubuntu, this is included in the
+  # `nginx-extras` package.  For more details, see:
+  #
+  #   http://docs-ci.oneapm.com/services_example/nginx.html
+  #
+
   - nginx_status_url: http://localhost/nginx_status/
-    tags:
-      - foo:bar
+  #   tags:
+  #     - instance:foo
+  #
+  # - nginx_status_url: http://example2.com:1234/nginx_status/
+  #   ssl_validation: False
+  #   tags:
+  #     - instance:bar
