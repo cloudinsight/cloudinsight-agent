@@ -96,10 +96,8 @@ func (api *API) do(req *http.Request) (resp *http.Response, err error) {
 func compress(b []byte) bytes.Buffer {
 	var buf bytes.Buffer
 	comp := zlib.NewWriter(&buf)
-
-	_, _ = comp.Write(b)
-	_ = comp.Close()
-
+	comp.Write(b)
+	comp.Close()
 	return buf
 }
 
