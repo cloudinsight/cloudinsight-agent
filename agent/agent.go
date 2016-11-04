@@ -9,6 +9,7 @@ import (
 	"github.com/cloudinsight/cloudinsight-agent/common/log"
 	"github.com/cloudinsight/cloudinsight-agent/common/metric"
 	"github.com/cloudinsight/cloudinsight-agent/common/plugin"
+	"github.com/cloudinsight/cloudinsight-agent/common/util"
 )
 
 // Agent runs agent and collects data based on the given config
@@ -79,16 +80,21 @@ func collectWithTimeout(
 	done := make(chan error)
 
 	var wg sync.WaitGroup
-	for _, instance := range rp.Config.Instances {
+	for i, instance := range rp.Config.Instances {
+		err := util.FillStruct(instance, rp.Plugin)
+		if err != nil {
+			log.Errorf("ERROR to parse plugin instance [%s#%d]: %s", rp.Name, i, err)
+			continue
+		}
 
 		wg.Add(1)
-		go func(inst plugin.Instance) {
+		go func() {
 			defer panicRecover(rp)
 			defer wg.Done()
 
-			done <- rp.Plugin.Check(agg, inst)
+			done <- rp.Plugin.Check(agg)
 			agg.Flush()
-		}(instance)
+		}()
 
 		select {
 		case err := <-done:

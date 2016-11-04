@@ -1,6 +1,10 @@
 package util
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/stretchr/testify/assert"
+)
 
 func TestCast(t *testing.T) {
 	for _, c := range []struct {
@@ -32,7 +36,7 @@ func TestRound(t *testing.T) {
 	} {
 		out := Round(c.in1, c.in2)
 		if out != c.want {
-			t.Errorf("Cast(%f, %d) == %f, want %f", c.in1, c.in2, out, c.want)
+			t.Errorf("Round(%f, %d) == %f, want %f", c.in1, c.in2, out, c.want)
 		}
 	}
 }
@@ -81,7 +85,37 @@ func TestHash(t *testing.T) {
 	} {
 		out := Hash(c.in)
 		if out != c.want {
-			t.Errorf("Cast(%s) == %d, want %d", c.in, out, c.want)
+			t.Errorf("Hash(%s) == %d, want %d", c.in, out, c.want)
 		}
 	}
+}
+
+type MyStruct struct {
+	StatusURL string `yaml:"status_url"`
+	Timeout   int64
+	User      string
+	password  string
+}
+
+func TestFillStruct(t *testing.T) {
+	myData := make(map[string]interface{})
+	myData["status_url"] = "http://localhost"
+
+	result := &MyStruct{}
+	err := FillStruct(myData, result)
+	assert.NoError(t, err)
+	assert.Equal(t, "http://localhost", result.StatusURL)
+
+	myData = make(map[string]interface{})
+	myData["user"] = "admin"
+	myData["password"] = "admin"
+	err = FillStruct(myData, result)
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "Cannot set password field value")
+
+	myData = make(map[string]interface{})
+	myData["timeout"] = 10
+	err = FillStruct(myData, result)
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "Provided value type didn't match obj field type")
 }

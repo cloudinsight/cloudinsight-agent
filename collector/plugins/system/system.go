@@ -66,7 +66,7 @@ type DiskIOStats struct {
 }
 
 // Check XXX
-func (s *Stats) Check(agg metric.Aggregator, instance plugin.Instance) error {
+func (s *Stats) Check(agg metric.Aggregator) error {
 	if err := s.collectSystemMetrics(agg); err != nil {
 		return err
 	}

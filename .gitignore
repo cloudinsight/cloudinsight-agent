@@ -8,7 +8,7 @@ build/*
 bin/*
 /cloudinsight-agent
 /cloudinsight-agent.conf
-conf.d/*.yaml
+collector/conf.d/*.yaml
 coverage-all.out
 coverage.out
 coverage.html

@@ -62,7 +62,7 @@ func TestDiskStats(t *testing.T) {
 	mps.On("DiskUsage", []string{"/", "/dev"}, []string(nil)).Return(duFiltered, nil)
 	mps.On("DiskUsage", []string{"/", "/home"}, []string(nil)).Return(duAll, nil)
 
-	err = (&DiskStats{ps: &mps}).Check(agg, nil)
+	err = (&DiskStats{ps: &mps}).Check(agg)
 	require.NoError(t, err)
 	agg.Flush()
 	expectedAllDiskMetrics := 16
@@ -111,14 +111,14 @@ func TestDiskStats(t *testing.T) {
 
 	// // We expect 6 more DiskMetrics to show up with an explicit match on "/"
 	// // and /home not matching the /dev in MountPoints
-	err = (&DiskStats{ps: &mps, MountPoints: []string{"/", "/dev"}}).Check(agg, nil)
+	err = (&DiskStats{ps: &mps, MountPoints: []string{"/", "/dev"}}).Check(agg)
 	require.NoError(t, err)
 	agg.Flush()
 	assert.Len(t, metricC, 8)
 
 	// // We should see all the diskpoints as MountPoints includes both
 	// // / and /home
-	err = (&DiskStats{ps: &mps, MountPoints: []string{"/", "/home"}}).Check(agg, nil)
+	err = (&DiskStats{ps: &mps, MountPoints: []string{"/", "/home"}}).Check(agg)
 	require.NoError(t, err)
 	agg.Flush()
 	assert.Len(t, metricC, expectedAllDiskMetrics+8)

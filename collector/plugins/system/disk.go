@@ -24,7 +24,7 @@ type DiskStats struct {
 }
 
 // Check XXX
-func (s *DiskStats) Check(agg metric.Aggregator, instance plugin.Instance) error {
+func (s *DiskStats) Check(agg metric.Aggregator) error {
 	disks, err := s.ps.DiskUsage(s.MountPoints, s.IgnoreFS)
 	if err != nil {
 		return fmt.Errorf("error getting disk usage info: %s", err)

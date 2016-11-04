@@ -12,32 +12,28 @@ import (
 
 const checkInterval = time.Second
 
-type testPlugin struct{}
+type testPlugin struct {
+	Tags []string
+}
 
-func (p *testPlugin) Check(agg metric.Aggregator, instance plugin.Instance) error {
-	var tags []string
-	if t, ok := instance["tags"]; ok {
-		if ts, ok := t.([]string); ok {
-			tags = ts
-		}
-	}
+func (p *testPlugin) Check(agg metric.Aggregator) error {
 	agg.Add("gauge", metric.Metric{
 		Name:  "test",
 		Value: 10,
-		Tags:  tags,
+		Tags:  p.Tags,
 	})
 	return nil
 }
 
 type testPanicPlugin struct{}
 
-func (p *testPanicPlugin) Check(agg metric.Aggregator, instance plugin.Instance) error {
+func (p *testPanicPlugin) Check(agg metric.Aggregator) error {
 	panic("got panic!")
 }
 
 type testTimeoutPlugin struct{}
 
-func (p *testTimeoutPlugin) Check(agg metric.Aggregator, instance plugin.Instance) error {
+func (p *testTimeoutPlugin) Check(agg metric.Aggregator) error {
 	agg.Add("gauge", metric.Metric{
 		Name:  "test.timeout",
 		Value: 20,
