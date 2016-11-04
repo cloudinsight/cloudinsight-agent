@@ -4,21 +4,12 @@ import (
 	"testing"
 
 	"github.com/cloudinsight/cloudinsight-agent/common"
-	"github.com/cloudinsight/cloudinsight-agent/common/config"
-	"github.com/cloudinsight/cloudinsight-agent/common/metric"
 	"github.com/shirou/gopsutil/disk"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
-func TestDiskStats(t *testing.T) {
+func TestDiskStatsCheck(t *testing.T) {
 	var mps MockPS
 	defer mps.AssertExpectations(t)
-	metricC := make(chan metric.Metric, 50)
-	defer close(metricC)
-	conf := &config.Config{}
-	agg := testutil.MockAggregator(metricC, conf)
-	var err error
 
 	duAll := []*disk.UsageStat{
 		{
@@ -62,16 +53,7 @@ func TestDiskStats(t *testing.T) {
 	mps.On("DiskUsage", []string{"/", "/dev"}, []string(nil)).Return(duFiltered, nil)
 	mps.On("DiskUsage", []string{"/", "/home"}, []string(nil)).Return(duAll, nil)
 
-	err = (&DiskStats{ps: &mps}).Check(agg)
-	require.NoError(t, err)
-	agg.Flush()
-	expectedAllDiskMetrics := 16
-	assert.Len(t, metricC, expectedAllDiskMetrics)
-
-	metrics := make([]metric.Metric, expectedAllDiskMetrics)
-	for i := 0; i < expectedAllDiskMetrics; i++ {
-		metrics[i] = <-metricC
-	}
+	ds := &DiskStats{ps: &mps}
 
 	fields1 := map[string]float64{
 		"system.disk.total":       float64(128) / KB,
@@ -87,9 +69,7 @@ func TestDiskStats(t *testing.T) {
 		"path:/",
 		"fstype:ext4",
 	}
-	for name, value := range fields1 {
-		testutil.AssertContainsMetricWithTags(t, metrics, name, value, tags1)
-	}
+	testutil.AssertCheckWithMetrics(t, ds.Check, 16, fields1, tags1)
 
 	tags2 := []string{
 		"path:/home",
@@ -105,21 +85,15 @@ func TestDiskStats(t *testing.T) {
 		"system.fs.inodes.used":   float64(2000),
 		"system.fs.inodes.in_use": float64(0.8130081300813008),
 	}
-	for name, value := range fields2 {
-		testutil.AssertContainsMetricWithTags(t, metrics, name, value, tags2)
-	}
+	testutil.AssertCheckWithMetrics(t, ds.Check, 16, fields2, tags2)
 
-	// // We expect 6 more DiskMetrics to show up with an explicit match on "/"
+	// // We expect 8 more DiskMetrics to show up with an explicit match on "/"
 	// // and /home not matching the /dev in MountPoints
-	err = (&DiskStats{ps: &mps, MountPoints: []string{"/", "/dev"}}).Check(agg)
-	require.NoError(t, err)
-	agg.Flush()
-	assert.Len(t, metricC, 8)
+	ds = &DiskStats{ps: &mps, MountPoints: []string{"/", "/dev"}}
+	testutil.AssertCheckWithLen(t, ds.Check, 8)
 
 	// // We should see all the diskpoints as MountPoints includes both
 	// // / and /home
-	err = (&DiskStats{ps: &mps, MountPoints: []string{"/", "/home"}}).Check(agg)
-	require.NoError(t, err)
-	agg.Flush()
-	assert.Len(t, metricC, expectedAllDiskMetrics+8)
+	ds = &DiskStats{ps: &mps, MountPoints: []string{"/", "/home"}}
+	testutil.AssertCheckWithLen(t, ds.Check, 16)
 }

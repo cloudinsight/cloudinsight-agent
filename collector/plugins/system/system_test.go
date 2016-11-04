@@ -2,59 +2,42 @@ package system
 
 import (
 	"testing"
-	"time"
 
 	"github.com/cloudinsight/cloudinsight-agent/common"
-	"github.com/cloudinsight/cloudinsight-agent/common/config"
-	"github.com/cloudinsight/cloudinsight-agent/common/metric"
 	"github.com/shirou/gopsutil/cpu"
 	"github.com/shirou/gopsutil/disk"
+	"github.com/shirou/gopsutil/host"
+	"github.com/shirou/gopsutil/load"
 	"github.com/shirou/gopsutil/mem"
 	"github.com/shirou/gopsutil/net"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 func TestCollectSystemMetrics(t *testing.T) {
-	metricC := make(chan metric.Metric, 10)
-	defer close(metricC)
-	conf := &config.Config{}
-	agg := testutil.MockAggregator(metricC, conf)
-	var err error
-
 	s := &Stats{}
-	err = s.collectSystemMetrics(agg)
-	require.NoError(t, err)
-	agg.Flush()
-	expected := 1
-	assert.Len(t, metricC, expected)
-	testm := <-metricC
-	assert.Equal(t, "system.uptime", testm.Name)
+	hostinfo, err := host.Info()
+	assert.NoError(t, err)
+	fields := map[string]float64{
+		"system.uptime": float64(hostinfo.Uptime),
+	}
+	testutil.AssertCheckWithMetrics(t, s.collectSystemMetrics, 1, fields, nil)
 }
 
 func TestCollectLoadMetrics(t *testing.T) {
-	metricC := make(chan metric.Metric, 10)
-	defer close(metricC)
-	conf := &config.Config{}
-	agg := testutil.MockAggregator(metricC, conf)
-	var err error
-
 	s := &Stats{}
-	err = s.collectLoadMetrics(agg)
-	require.NoError(t, err)
-	agg.Flush()
-	expected := 3
-	assert.Len(t, metricC, expected)
+	loadavg, err := load.Avg()
+	assert.NoError(t, err)
+	fields := map[string]float64{
+		"system.load.1":  loadavg.Load1,
+		"system.load.5":  loadavg.Load5,
+		"system.load.15": loadavg.Load15,
+	}
+	testutil.AssertCheckWithMetrics(t, s.collectLoadMetrics, 3, fields, nil)
 }
 
 func TestCollectCPUMetrics(t *testing.T) {
 	var mps MockPS
 	defer mps.AssertExpectations(t)
-	metricC := make(chan metric.Metric, 100)
-	defer close(metricC)
-	conf := &config.Config{}
-	agg := testutil.MockAggregator(metricC, conf)
-	var err error
 
 	cts := cpu.TimesStat{
 		CPU:       "cpu0",
@@ -93,24 +76,11 @@ func TestCollectCPUMetrics(t *testing.T) {
 			TotalCPU: true,
 		},
 	}
-	err = s.collectCPUMetrics(agg)
-	require.NoError(t, err)
-	agg.Flush()
-	assert.Len(t, metricC, 0)
+	testutil.AssertCheckWithLen(t, s.collectCPUMetrics, 0)
 
 	mps2 := MockPS{}
 	mps2.On("CPUTimes").Return([]cpu.TimesStat{cts2}, nil)
 	s.ps = &mps2
-
-	err = s.collectCPUMetrics(agg)
-	require.NoError(t, err)
-	agg.Flush()
-	expected := 10
-	assert.Len(t, metricC, expected)
-	metrics := make([]metric.Metric, expected)
-	for i := 0; i < expected; i++ {
-		metrics[i] = <-metricC
-	}
 
 	fields := map[string]float64{
 		"system.cpu.user":       8.3,
@@ -127,19 +97,12 @@ func TestCollectCPUMetrics(t *testing.T) {
 	tags := []string{
 		"cpu:cpu0",
 	}
-	for name, value := range fields {
-		testutil.AssertContainsMetricWithTags(t, metrics, name, value, tags, 0.0005)
-	}
+	testutil.AssertCheckWithMetrics(t, s.collectCPUMetrics, 10, fields, tags, 0.0005)
 }
 
 func TestCollectMemoryMetrics(t *testing.T) {
 	var mps MockPS
 	defer mps.AssertExpectations(t)
-	metricC := make(chan metric.Metric, 100)
-	defer close(metricC)
-	conf := &config.Config{}
-	agg := testutil.MockAggregator(metricC, conf)
-	var err error
 
 	vms := &mem.VirtualMemoryStat{
 		Total:     12400,
@@ -168,16 +131,6 @@ func TestCollectMemoryMetrics(t *testing.T) {
 	s := &Stats{
 		ps: &mps,
 	}
-	err = s.collectMemoryMetrics(agg)
-	require.NoError(t, err)
-	agg.Flush()
-	expected := 13
-	assert.Len(t, metricC, expected)
-	metrics := make([]metric.Metric, expected)
-	for i := 0; i < expected; i++ {
-		metrics[i] = <-metricC
-	}
-
 	fields := map[string]float64{
 		"system.mem.total":        12400 / MB,
 		"system.mem.usable":       7600 / MB,
@@ -193,19 +146,12 @@ func TestCollectMemoryMetrics(t *testing.T) {
 		"system.swap.swapped_in":  7,
 		"system.swap.swapped_out": 830,
 	}
-	for name, value := range fields {
-		testutil.AssertContainsMetricWithTags(t, metrics, name, value, nil)
-	}
+	testutil.AssertCheckWithMetrics(t, s.collectMemoryMetrics, 13, fields, nil)
 }
 
 func TestCollectNetMetrics(t *testing.T) {
 	var mps MockPS
 	defer mps.AssertExpectations(t)
-	metricC := make(chan metric.Metric, 100)
-	defer close(metricC)
-	conf := &config.Config{}
-	agg := testutil.MockAggregator(metricC, conf)
-	var err error
 
 	netio := net.IOCountersStat{
 		Name:        "eth0",
@@ -247,16 +193,6 @@ func TestCollectNetMetrics(t *testing.T) {
 	s := &Stats{
 		ps: &mps,
 	}
-	err = s.collectNetMetrics(agg)
-	require.NoError(t, err)
-	agg.Flush()
-	expected := 2
-	assert.Len(t, metricC, expected)
-
-	metrics := make([]metric.Metric, expected)
-	for i := 0; i < expected; i++ {
-		metrics[i] = <-metricC
-	}
 
 	fields := map[string]float64{
 		"system.net.udp_indatagrams": 4655,
@@ -265,27 +201,13 @@ func TestCollectNetMetrics(t *testing.T) {
 	tags := []string{
 		"interface:all",
 	}
-	for name, value := range fields {
-		testutil.AssertContainsMetricWithTags(t, metrics, name, value, tags)
-	}
+	testutil.AssertCheckWithMetrics(t, s.collectNetMetrics, 2, fields, tags)
 
 	mps2 := MockPS{}
 	mps2.On("NetIO").Return([]net.IOCountersStat{netio2}, nil)
 	mps2.On("NetProto").Return(netprotos, nil)
-	s.ps = &mps2
-
-	// Wait a second for collecting rate metrics.
-	time.Sleep(time.Second)
-
-	err = s.collectNetMetrics(agg)
-	require.NoError(t, err)
-	agg.Flush()
-	expected = 8
-	assert.Len(t, metricC, expected)
-
-	metrics = make([]metric.Metric, expected)
-	for i := 0; i < expected; i++ {
-		metrics[i] = <-metricC
+	s2 := &Stats{
+		ps: &mps2,
 	}
 
 	fields = map[string]float64{
@@ -299,19 +221,12 @@ func TestCollectNetMetrics(t *testing.T) {
 	tags = []string{
 		"interface:eth0",
 	}
-	for name, value := range fields {
-		testutil.AssertContainsMetricWithTags(t, metrics, name, value, tags)
-	}
+	testutil.AssertCheckWithRateMetrics(t, s.collectNetMetrics, s2.collectNetMetrics, 8, fields, tags)
 }
 
 func TestCollectDiskIOMetrics(t *testing.T) {
 	var mps MockPS
 	defer mps.AssertExpectations(t)
-	metricC := make(chan metric.Metric, 100)
-	defer close(metricC)
-	conf := &config.Config{}
-	agg := testutil.MockAggregator(metricC, conf)
-	var err error
 
 	diskio1 := disk.IOCountersStat{
 		ReadCount:    444,
@@ -339,30 +254,18 @@ func TestCollectDiskIOMetrics(t *testing.T) {
 
 	mps.On("DiskIO").Return(map[string]disk.IOCountersStat{"sda1": diskio1}, nil)
 
+	io := &DiskIOStats{}
 	s := &Stats{
 		ps: &mps,
-		io: &DiskIOStats{},
+		io: io,
 	}
-	err = s.collectDiskIOMetrics(agg)
-	require.NoError(t, err)
-	agg.Flush()
-	assert.Len(t, metricC, 0)
+	testutil.AssertCheckWithLen(t, s.collectDiskIOMetrics, 0)
 
 	mps2 := MockPS{}
 	mps2.On("DiskIO").Return(map[string]disk.IOCountersStat{"sda1": diskio2}, nil)
-	s.ps = &mps2
-
-	// Wait a second for collecting rate metrics.
-	time.Sleep(time.Second)
-
-	err = s.collectDiskIOMetrics(agg)
-	require.NoError(t, err)
-	agg.Flush()
-	expected := 8
-	assert.Len(t, metricC, expected)
-	metrics := make([]metric.Metric, expected)
-	for i := 0; i < expected; i++ {
-		metrics[i] = <-metricC
+	s2 := &Stats{
+		ps: &mps2,
+		io: io,
 	}
 
 	fields := map[string]float64{
@@ -373,16 +276,14 @@ func TestCollectDiskIOMetrics(t *testing.T) {
 		"system.io.r_await": 4000,
 		"system.io.w_await": 3000,
 		"system.io.util":    123000,
-		"system.io.await":   float64(4000*444+3000*3000) / float64(444+3000),
 	}
 	tags := []string{
 		"device:sda1",
 	}
-	for name, value := range fields {
-		if name == "system.io.await" {
-			testutil.AssertContainsMetricWithTags(t, metrics, name, value, nil)
-		} else {
-			testutil.AssertContainsMetricWithTags(t, metrics, name, value, tags)
-		}
+	testutil.AssertCheckWithRateMetrics(t, s.collectDiskIOMetrics, s2.collectDiskIOMetrics, 8, fields, tags)
+
+	fields = map[string]float64{
+		"system.io.await": float64(4000*444+3000*3000) / float64(444+3000),
 	}
+	testutil.AssertCheckWithRateMetrics(t, s.collectDiskIOMetrics, s2.collectDiskIOMetrics, 8, fields, nil)
 }

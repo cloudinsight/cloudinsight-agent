@@ -4,11 +4,16 @@ import (
 	"fmt"
 	"reflect"
 	"testing"
+	"time"
 
 	"github.com/cloudinsight/cloudinsight-agent/common/config"
 	"github.com/cloudinsight/cloudinsight-agent/common/metric"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
+
+// Checker XXX
+type Checker func(agg metric.Aggregator) error
 
 // MockAggregator XXX
 func MockAggregator(
@@ -20,6 +25,91 @@ func MockAggregator(
 
 func formatter(m metric.Metric) interface{} {
 	return nil
+}
+
+// AssertCheckWithMetrics XXX
+func AssertCheckWithMetrics(
+	t *testing.T,
+	checker Checker,
+	expectedMetrics int,
+	fields map[string]float64,
+	tags []string,
+	delta ...float64,
+) {
+	metricC := make(chan metric.Metric, 100)
+	defer close(metricC)
+	conf := &config.Config{}
+	agg := MockAggregator(metricC, conf)
+	var err error
+
+	err = checker(agg)
+	require.NoError(t, err)
+	agg.Flush()
+	assert.Len(t, metricC, expectedMetrics)
+
+	metrics := make([]metric.Metric, expectedMetrics)
+	for i := 0; i < expectedMetrics; i++ {
+		metrics[i] = <-metricC
+	}
+
+	for name, value := range fields {
+		AssertContainsMetricWithTags(t, metrics, name, value, tags, delta...)
+	}
+}
+
+// AssertCheckWithRateMetrics XXX
+func AssertCheckWithRateMetrics(
+	t *testing.T,
+	checker Checker,
+	checker2 Checker,
+	expectedMetrics int,
+	fields map[string]float64,
+	tags []string,
+	delta ...float64,
+) {
+	metricC := make(chan metric.Metric, 100)
+	defer close(metricC)
+	conf := &config.Config{}
+	agg := MockAggregator(metricC, conf)
+	var err error
+
+	err = checker(agg)
+	require.NoError(t, err)
+
+	// Wait a second for collecting rate metrics.
+	time.Sleep(time.Second)
+
+	err = checker2(agg)
+	require.NoError(t, err)
+	agg.Flush()
+	assert.Len(t, metricC, expectedMetrics)
+
+	metrics := make([]metric.Metric, expectedMetrics)
+	for i := 0; i < expectedMetrics; i++ {
+		metrics[i] = <-metricC
+	}
+
+	for name, value := range fields {
+		AssertContainsMetricWithTags(t, metrics, name, value, tags, delta...)
+	}
+}
+
+// AssertCheckWithLen XXX
+func AssertCheckWithLen(
+	t *testing.T,
+	checker Checker,
+	expectedMetrics int,
+) {
+	metricC := make(chan metric.Metric, 100)
+	defer close(metricC)
+	conf := &config.Config{}
+	agg := MockAggregator(metricC, conf)
+	var err error
+
+	err = checker(agg)
+	require.NoError(t, err)
+	agg.Flush()
+	assert.Len(t, metricC, expectedMetrics)
 }
 
 // AssertContainsMetricWithTags XXX
