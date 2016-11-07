@@ -1,0 +1,9 @@
+init_config:
+
+instances:
+  - apache_status_url: http://localhost/server-status?auto
+    # apache_user: example_user
+    # apache_password: example_password
+    # tags:
+    #   - tag_key1:tag_value1
+    #   - tag_key2:tag_value2
