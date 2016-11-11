@@ -60,13 +60,23 @@ func (a *Apache) Check(agg metric.Aggregator) error {
 	if err != nil {
 		return fmt.Errorf("Unable to parse address '%s': %s", a.ApacheStatusURL, err)
 	}
-	resp, err := client.Get(addr.String())
+
+	requestURI := addr.String()
+	req, err := http.NewRequest("GET", requestURI, nil)
 	if err != nil {
-		return fmt.Errorf("error making HTTP request to %s: %s", addr.String(), err)
+		return err
+	}
+	if a.ApacheUser != "" {
+		req.SetBasicAuth(a.ApacheUser, a.ApachePassword)
+	}
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return fmt.Errorf("error making HTTP request to %s: %s", requestURI, err)
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("%s returned HTTP status %s", addr.String(), resp.Status)
+		return fmt.Errorf("%s returned HTTP status %s", requestURI, resp.Status)
 	}
 
 	sc := bufio.NewScanner(resp.Body)
