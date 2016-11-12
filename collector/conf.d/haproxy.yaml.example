@@ -1,0 +1,6 @@
+init_config:
+
+instances:
+  - url: http://localhost/haproxy?stats
+    # username: username
+    # password: password
