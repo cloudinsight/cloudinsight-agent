@@ -116,6 +116,7 @@ func (h *HAProxy) collectHAStats(agg metric.Aggregator, statsBody io.Reader, hos
 		if i == 0 {
 			row[0] = row[0][2:]
 			fields = row
+			continue
 		}
 		tags := []string{
 			"server:" + host,
