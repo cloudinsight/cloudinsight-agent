@@ -43,15 +43,15 @@ func NewAggregator(
 	recentPointThreshold int64,
 	expiry ...int64,
 ) Aggregator {
+	if recentPointThreshold == 0 {
+		recentPointThreshold = DefaultRecentPointThreshold
+	}
+
 	var expirySeconds int64
 	if len(expiry) > 0 {
 		expirySeconds = expiry[0]
 	} else {
 		expirySeconds = DefaultExpirySeconds
-	}
-
-	if recentPointThreshold == 0 {
-		recentPointThreshold = DefaultRecentPointThreshold
 	}
 
 	return &aggregator{

@@ -163,6 +163,22 @@ func TestCollectWithTimeout(t *testing.T) {
 	time.Sleep(time.Millisecond)
 }
 
+func TestRun(t *testing.T) {
+	shutdown := make(chan struct{})
+	conf := config.Config{}
+	a := NewAgent(&conf)
+	done := make(chan bool)
+
+	go func() {
+		err := a.Run(shutdown)
+		assert.NoError(t, err)
+		done <- true
+	}()
+
+	close(shutdown)
+	<-done
+}
+
 func init() {
 	log.SetOutput(ioutil.Discard)
 }

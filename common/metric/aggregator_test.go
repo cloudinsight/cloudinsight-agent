@@ -29,6 +29,24 @@ func getValue(m Metric) float64 {
 	return value
 }
 
+func TestNewAggregator(t *testing.T) {
+	metricC := make(chan Metric, 5)
+	defer close(metricC)
+	formatter := func(m Metric) interface{} {
+		return nil
+	}
+	agg := NewAggregator(metricC, 30, "test", formatter, nil, nil, 0)
+	if a, ok := agg.(*aggregator); ok {
+		assert.Equal(t, int64(DefaultRecentPointThreshold), a.recentPointThreshold)
+		assert.Equal(t, int64(DefaultExpirySeconds), a.expirySeconds)
+	}
+
+	agg = NewAggregator(metricC, 30, "test", formatter, nil, nil, 0, 30)
+	if a, ok := agg.(*aggregator); ok {
+		assert.Equal(t, int64(30), a.expirySeconds)
+	}
+}
+
 func TestAddMetrics(t *testing.T) {
 	a := aggregator{
 		metrics: make(chan Metric, 10),

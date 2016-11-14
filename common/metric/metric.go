@@ -66,8 +66,8 @@ func (m *Metric) getCorrectedValue() (float64, error) {
 		return 0, fmt.Errorf("undeterminable type: %s", d)
 	}
 
-	if math.IsNaN(value) {
-		return 0, fmt.Errorf("NaN is an unsupported value for %s", m.Name)
+	if math.IsNaN(value) || math.IsInf(value, 0) {
+		return 0, fmt.Errorf("NaN and Inf is unsupported value for %s", m.Name)
 	}
 
 	return value, nil

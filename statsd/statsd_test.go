@@ -1,14 +1,37 @@
 package statsd
 
 import (
+	"io/ioutil"
 	"net"
 	"testing"
 	"time"
 
 	"github.com/cloudinsight/cloudinsight-agent/common/config"
+	"github.com/cloudinsight/cloudinsight-agent/common/log"
 	"github.com/cloudinsight/cloudinsight-agent/common/metric"
 	"github.com/stretchr/testify/assert"
 )
+
+func TestRun(t *testing.T) {
+	shutdown := make(chan struct{})
+	conf := config.Config{
+		GlobalConfig: config.GlobalConfig{
+			BindHost:   "127.0.0.1",
+			StatsdPort: 1234,
+		},
+	}
+	s := NewStatsd(&conf)
+	done := make(chan bool)
+
+	go func() {
+		err := s.Run(shutdown)
+		assert.NoError(t, err)
+		done <- true
+	}()
+
+	close(shutdown)
+	<-done
+}
 
 func TestUDPListen(t *testing.T) {
 	shutdown := make(chan struct{})
@@ -77,4 +100,8 @@ func sendPacket(addr string, packet string) error {
 	}
 	_, err = udpClient.Write([]byte(packet))
 	return err
+}
+
+func init() {
+	log.SetOutput(ioutil.Discard)
 }

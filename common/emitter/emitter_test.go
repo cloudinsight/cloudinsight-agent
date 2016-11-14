@@ -88,6 +88,10 @@ func TestAddMetric(t *testing.T) {
 	err := m.flush()
 	assert.NoError(t, err)
 	assert.Len(t, m.Metrics(), 10)
+
+	m.emitCount = 6
+	err = m.flush()
+	assert.NoError(t, err)
 }
 
 // Test that the emitter doesn't flush until it's full.
