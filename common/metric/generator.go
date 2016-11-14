@@ -60,6 +60,10 @@ func NewGenerator(metricType string, metric Metric, formatter Formatter, histogr
 		return &count{
 			Metric: metric,
 		}, nil
+	case "monotoniccount":
+		return &monotonicCount{
+			Metric: metric,
+		}, nil
 	case "set":
 		return &set{
 			Metric: metric,
@@ -148,6 +152,7 @@ func (c *count) Sample(value float64, timestamp int64) {
 
 func (c *count) Flush(timestamp int64, interval float64) []Metric {
 	defer func() {
+		c.hasSampled = false
 		c.Value = nil
 	}()
 
@@ -166,17 +171,24 @@ type monotonicCount struct {
 	preCounter float64
 	curCounter float64
 	count      float64
+	hasSampled bool
 }
 
 func (mc *monotonicCount) Sample(value float64, timestamp int64) {
-	mc.preCounter = mc.curCounter
-	mc.curCounter = value
-	mc.count += math.Max(0, mc.curCounter-mc.preCounter)
+	if mc.hasSampled {
+		mc.preCounter = mc.curCounter
+		mc.curCounter = value
+		mc.count += math.Max(0, mc.curCounter-mc.preCounter)
+	} else {
+		mc.curCounter = value
+		mc.hasSampled = true
+	}
 	mc.LastSampleTime = time.Now().Unix()
 }
 
 func (mc *monotonicCount) Flush(timestamp int64, interval float64) []Metric {
 	defer func() {
+		mc.hasSampled = false
 		mc.count = 0
 	}()
 

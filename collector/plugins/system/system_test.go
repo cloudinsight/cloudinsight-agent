@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/cloudinsight/cloudinsight-agent/common"
+	"github.com/cloudinsight/cloudinsight-agent/common/plugin"
 	"github.com/shirou/gopsutil/cpu"
 	"github.com/shirou/gopsutil/disk"
 	"github.com/shirou/gopsutil/host"
@@ -12,6 +13,19 @@ import (
 	"github.com/shirou/gopsutil/net"
 	"github.com/stretchr/testify/assert"
 )
+
+func TestNewStats(t *testing.T) {
+	conf := plugin.InitConfig{
+		"percpu":   true,
+		"totalcpu": false,
+	}
+
+	stats := NewStats(conf)
+	if s, ok := stats.(*Stats); ok {
+		assert.True(t, s.cpu.PerCPU)
+		assert.False(t, s.cpu.TotalCPU)
+	}
+}
 
 func TestCollectSystemMetrics(t *testing.T) {
 	s := &Stats{}

@@ -1,10 +1,12 @@
 package agent
 
 import (
+	"io/ioutil"
 	"testing"
 	"time"
 
 	"github.com/cloudinsight/cloudinsight-agent/common/config"
+	"github.com/cloudinsight/cloudinsight-agent/common/log"
 	"github.com/cloudinsight/cloudinsight-agent/common/metric"
 	"github.com/cloudinsight/cloudinsight-agent/common/plugin"
 	"github.com/stretchr/testify/assert"
@@ -159,4 +161,8 @@ func TestCollectWithTimeout(t *testing.T) {
 
 	// Waiting for collect goroutines stopping.
 	time.Sleep(time.Millisecond)
+}
+
+func init() {
+	log.SetOutput(ioutil.Discard)
 }

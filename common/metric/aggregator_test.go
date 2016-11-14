@@ -2,12 +2,14 @@ package metric
 
 import (
 	"fmt"
+	"io/ioutil"
 	"math/rand"
 	"sort"
 	"strings"
 	"testing"
 	"time"
 
+	"github.com/cloudinsight/cloudinsight-agent/common/log"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -526,6 +528,51 @@ func TestRate(t *testing.T) {
 	assert.Len(t, a.metrics, 0)
 }
 
+func TestCount(t *testing.T) {
+	a := aggregator{
+		metrics:  make(chan Metric, 10),
+		context:  make(map[Context]Generator),
+		interval: 1,
+		hostname: "myhost",
+	}
+	defer close(a.metrics)
+
+	for i := 0; i < 10; i++ {
+		a.Add("count", NewMetric("my.count", 2))
+		a.Add("count", NewMetric("my.count", 3))
+		a.Flush()
+		assert.Len(t, a.metrics, 1)
+
+		// Check that the count is calculated correctly
+		testm := <-a.metrics
+		assert.Equal(t, "my.count", testm.Name)
+		assert.EqualValues(t, 5, testm.Value)
+	}
+}
+
+func TestMonotonicCount(t *testing.T) {
+	a := aggregator{
+		metrics:  make(chan Metric, 10),
+		context:  make(map[Context]Generator),
+		interval: 1,
+		hostname: "myhost",
+	}
+	defer close(a.metrics)
+
+	for i := 0; i < 10; i++ {
+		a.Add("monotoniccount", NewMetric("my.monotoniccount", 2))
+		a.Add("monotoniccount", NewMetric("my.monotoniccount", 3))
+		a.Add("monotoniccount", NewMetric("my.monotoniccount", 7))
+		a.Flush()
+		assert.Len(t, a.metrics, 1)
+
+		// Check that the monotoniccount is calculated correctly
+		testm := <-a.metrics
+		assert.Equal(t, "my.monotoniccount", testm.Name)
+		assert.EqualValues(t, 5, testm.Value)
+	}
+}
+
 func TestRateErrors(t *testing.T) {
 	a := aggregator{
 		metrics:  make(chan Metric, 10),
@@ -836,4 +883,8 @@ func TestInvalidPackets(t *testing.T) {
 			t.Errorf("Parsing packet %s should have resulted in an error\n", packet)
 		}
 	}
+}
+
+func init() {
+	log.SetOutput(ioutil.Discard)
 }

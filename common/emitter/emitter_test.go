@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"sync"
 	"testing"
+	"time"
 
 	"github.com/cloudinsight/cloudinsight-agent/common/log"
 	"github.com/cloudinsight/cloudinsight-agent/common/metric"
@@ -167,6 +168,31 @@ func TestPostFail(t *testing.T) {
 	require.NoError(t, err)
 
 	assert.Len(t, m.Metrics(), 10)
+}
+
+func TestRun(t *testing.T) {
+	shutdown := make(chan struct{})
+	metricC := make(chan metric.Metric, 5)
+	defer close(metricC)
+	interval := 200 * time.Millisecond
+	done := make(chan bool)
+
+	go func() {
+		m := &mockEmitter{
+			Emitter: NewEmitter("Test"),
+		}
+		m.Emitter.Parent = m
+		err := m.Run(shutdown, metricC, interval)
+		assert.NoError(t, err)
+		done <- true
+	}()
+
+	// Waiting for the emitter timeout.
+	time.Sleep(500 * time.Millisecond)
+
+	close(shutdown)
+	<-done
+	return
 }
 
 type mockEmitter struct {
