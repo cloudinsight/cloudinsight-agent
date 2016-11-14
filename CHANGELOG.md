@@ -1,7 +1,16 @@
 # Change Log
 
+## [v0.2.0](https://github.com/cloudinsight/cloudinsight-agent/tree/v0.2.0) (2016-11-14)
+
+### Features
+- 增加 `non_local_traffic` 配置项，支持探针代理模式
+- 增加 `proxy` 配置项，支持 HTTP 代理
+- 支持 Nginx
+- 支持 Apache
+- 支持 HAProxy
+
 ## [v0.1.0](https://github.com/cloudinsight/cloudinsight-agent/tree/v0.1.0) (2016-10-23)
 
 ### Release Notes
 
-This is the initial release of Cloudinsight Agent.
+初版
