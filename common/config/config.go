@@ -14,7 +14,7 @@ import (
 )
 
 // VERSION sets the agent version here.
-const VERSION = "0.1.0"
+const VERSION = "0.2.0"
 
 // NewConfig creates a new instance of Config.
 func NewConfig(confPath string) (*Config, error) {
