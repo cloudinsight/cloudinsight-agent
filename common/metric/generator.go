@@ -172,23 +172,27 @@ type monotonicCount struct {
 	curCounter float64
 	count      float64
 	hasSampled bool
+	hasFlushed bool
 }
 
 func (mc *monotonicCount) Sample(value float64, timestamp int64) {
 	if mc.hasSampled {
 		mc.preCounter = mc.curCounter
-		mc.curCounter = value
+	}
+	mc.curCounter = value
+	if mc.hasSampled || mc.hasFlushed {
 		mc.count += math.Max(0, mc.curCounter-mc.preCounter)
-	} else {
-		mc.curCounter = value
-		mc.hasSampled = true
 	}
 	mc.LastSampleTime = time.Now().Unix()
+	mc.hasSampled = true
 }
 
 func (mc *monotonicCount) Flush(timestamp int64, interval float64) []Metric {
 	defer func() {
 		mc.hasSampled = false
+		mc.hasFlushed = true
+		mc.preCounter = mc.curCounter
+		mc.curCounter = 0
 		mc.count = 0
 	}()
 

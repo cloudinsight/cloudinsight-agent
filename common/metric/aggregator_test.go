@@ -577,18 +577,24 @@ func TestMonotonicCount(t *testing.T) {
 	}
 	defer close(a.metrics)
 
-	for i := 0; i < 10; i++ {
-		a.Add("monotoniccount", NewMetric("my.monotoniccount", 2))
-		a.Add("monotoniccount", NewMetric("my.monotoniccount", 3))
-		a.Add("monotoniccount", NewMetric("my.monotoniccount", 7))
-		a.Flush()
-		assert.Len(t, a.metrics, 1)
+	a.Add("monotoniccount", NewMetric("my.monotoniccount", 2))
+	a.Add("monotoniccount", NewMetric("my.monotoniccount", 3))
+	a.Add("monotoniccount", NewMetric("my.monotoniccount", 7))
+	a.Flush()
+	assert.Len(t, a.metrics, 1)
 
-		// Check that the monotoniccount is calculated correctly
-		testm := <-a.metrics
-		assert.Equal(t, "my.monotoniccount", testm.Name)
-		assert.EqualValues(t, 5, testm.Value)
-	}
+	// Check that the monotoniccount is calculated correctly
+	testm := <-a.metrics
+	assert.Equal(t, "my.monotoniccount", testm.Name)
+	assert.EqualValues(t, 5, testm.Value)
+
+	a.Add("monotoniccount", NewMetric("my.monotoniccount", 11))
+	a.Flush()
+	assert.Len(t, a.metrics, 1)
+
+	// Check that the monotoniccount is calculated correctly
+	testm = <-a.metrics
+	assert.EqualValues(t, 4, testm.Value)
 }
 
 func TestRateErrors(t *testing.T) {
