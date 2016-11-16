@@ -168,19 +168,20 @@ func (c *count) Flush(timestamp int64, interval float64) []Metric {
 type monotonicCount struct {
 	Metric
 
-	preCounter float64
-	curCounter float64
-	count      float64
-	hasSampled bool
-	hasFlushed bool
+	preCounter  float64
+	curCounter  float64
+	count       float64
+	hasSampled  bool
+	sampleCount int
 }
 
 func (mc *monotonicCount) Sample(value float64, timestamp int64) {
+	mc.sampleCount++
 	if mc.hasSampled {
 		mc.preCounter = mc.curCounter
 	}
 	mc.curCounter = value
-	if mc.hasSampled || mc.hasFlushed {
+	if mc.hasSampled {
 		mc.count += math.Max(0, mc.curCounter-mc.preCounter)
 	}
 	mc.LastSampleTime = time.Now().Unix()
@@ -189,12 +190,12 @@ func (mc *monotonicCount) Sample(value float64, timestamp int64) {
 
 func (mc *monotonicCount) Flush(timestamp int64, interval float64) []Metric {
 	defer func() {
-		mc.hasSampled = false
-		mc.hasFlushed = true
-		mc.preCounter = mc.curCounter
-		mc.curCounter = 0
 		mc.count = 0
 	}()
+
+	if mc.sampleCount == 1 {
+		return nil
+	}
 
 	m := mc.Metric
 	m.Value = mc.count

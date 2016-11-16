@@ -97,8 +97,8 @@ func TestCollectWithMultiInstances(t *testing.T) {
 		Plugin: &testPlugin{},
 		Config: &plugin.Config{
 			Instances: []plugin.Instance{
-				map[string]interface{}{"tags": []string{"foo"}},
-				map[string]interface{}{"tags": []string{"bar"}},
+				map[string]interface{}{"tags": []interface{}{"instance:foo"}},
+				map[string]interface{}{"tags": []interface{}{"instance:bar"}},
 			},
 		},
 	}
@@ -119,12 +119,12 @@ func TestCollectWithMultiInstances(t *testing.T) {
 	testm := <-metricC
 	assert.Equal(t, "test", testm.Name)
 	assert.EqualValues(t, 10, testm.Value)
-	assert.Equal(t, []string{"foo"}, testm.Tags)
+	assert.Equal(t, []string{"instance:foo"}, testm.Tags)
 
 	testm = <-metricC
 	assert.Equal(t, "test", testm.Name)
 	assert.EqualValues(t, 10, testm.Value)
-	assert.Equal(t, []string{"bar"}, testm.Tags)
+	assert.Equal(t, []string{"instance:bar"}, testm.Tags)
 	close(shutdown)
 
 	// Waiting for collect goroutines stopping.

@@ -73,7 +73,6 @@ var client = &http.Client{
 
 // Check XXX
 func (h *HAProxy) Check(agg metric.Aggregator) error {
-	// requestURI := h.URL + ";csv;norefresh"
 	requestURI := h.URL
 	if !strings.HasSuffix(h.URL, ";csv;norefresh") {
 		requestURI += ";csv;norefresh"

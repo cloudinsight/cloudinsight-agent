@@ -65,6 +65,20 @@ func FillStruct(m map[string]interface{}, s interface{}) error {
 			}
 
 			val := reflect.ValueOf(value)
+			if tag == "tags" {
+				var tags []string
+				for _, t := range val.Interface().([]interface{}) {
+					switch v := t.(type) {
+					case string:
+						tags = append(tags, v)
+					default:
+						return fmt.Errorf("Tags type %s not supported", v)
+					}
+				}
+				structFieldValue.Set(reflect.ValueOf(tags))
+				return nil
+			}
+
 			if structFieldValue.Type() != val.Type() {
 				return errors.New("Provided value type didn't match obj field type")
 			}
