@@ -16,5 +16,4 @@ instances:
     # password: admin
 
     # Custom tags
-    # tags:
-    #   - instance:foo
+    # tags: ["instance:foo"]
