@@ -50,18 +50,12 @@ func TestCollectWithPanic(t *testing.T) {
 	defer close(metricC)
 
 	rp := &plugin.RunningPlugin{
-		Name:   "testPlugin",
-		Plugin: &testPlugin{},
-		Config: &plugin.Config{
-			Instances: []plugin.Instance{map[string]interface{}{}},
-		},
+		Name:    "testPlugin",
+		Plugins: []plugin.Plugin{&testPlugin{}},
 	}
 	rpp := &plugin.RunningPlugin{
-		Name:   "testPanicPlugin",
-		Plugin: &testPanicPlugin{},
-		Config: &plugin.Config{
-			Instances: []plugin.Instance{map[string]interface{}{}},
-		},
+		Name:    "testPanicPlugin",
+		Plugins: []plugin.Plugin{&testPanicPlugin{}},
 	}
 	a := &Agent{
 		conf: &config.Config{},
@@ -93,14 +87,17 @@ func TestCollectWithMultiInstances(t *testing.T) {
 	defer close(metricC)
 
 	rp := &plugin.RunningPlugin{
-		Name:   "testPlugin",
-		Plugin: &testPlugin{},
-		Config: &plugin.Config{
-			Instances: []plugin.Instance{
-				map[string]interface{}{"tags": []interface{}{"instance:foo"}},
-				map[string]interface{}{"tags": []interface{}{"instance:bar"}},
-			},
+		Name: "testPlugin",
+		Plugins: []plugin.Plugin{
+			&testPlugin{[]string{"instance:foo"}},
+			&testPlugin{[]string{"instance:bar"}},
 		},
+		// Config: &plugin.Config{
+		// Instances: []plugin.Instance{
+		// map[string]interface{}{"tags": []interface{}{"instance:foo"}},
+		// map[string]interface{}{"tags": []interface{}{"instance:bar"}},
+		// },
+		// },
 	}
 
 	a := &Agent{
@@ -137,11 +134,8 @@ func TestCollectWithTimeout(t *testing.T) {
 	defer close(metricC)
 
 	rp := &plugin.RunningPlugin{
-		Name:   "testTimeoutPlugin",
-		Plugin: &testTimeoutPlugin{},
-		Config: &plugin.Config{
-			Instances: []plugin.Instance{map[string]interface{}{}},
-		},
+		Name:    "testTimeoutPlugin",
+		Plugins: []plugin.Plugin{&testTimeoutPlugin{}},
 	}
 	a := &Agent{
 		conf: &config.Config{},

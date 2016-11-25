@@ -11,6 +11,7 @@ import (
 	"github.com/cloudinsight/cloudinsight-agent/collector"
 	"github.com/cloudinsight/cloudinsight-agent/common/log"
 	"github.com/cloudinsight/cloudinsight-agent/common/plugin"
+	"github.com/cloudinsight/cloudinsight-agent/common/util"
 )
 
 // VERSION sets the agent version here.
@@ -141,10 +142,19 @@ func (c *Config) addPlugin(name string, pluginConfig *plugin.Config) error {
 		return fmt.Errorf("Undefined plugin: %s", name)
 	}
 
+	plug := checker(pluginConfig.InitConfig)
+	plugs := make([]plugin.Plugin, len(pluginConfig.Instances))
+	for i, instance := range pluginConfig.Instances {
+		err := util.FillStruct(instance, plug)
+		if err != nil {
+			log.Errorf("ERROR to parse plugin instance [%s#%d]: %s", name, i, err)
+			continue
+		}
+		plugs[i] = plug
+	}
 	rp := &plugin.RunningPlugin{
-		Name:   name,
-		Plugin: checker(pluginConfig.InitConfig),
-		Config: pluginConfig,
+		Name:    name,
+		Plugins: plugs,
 	}
 	c.Plugins = append(c.Plugins, rp)
 	return nil

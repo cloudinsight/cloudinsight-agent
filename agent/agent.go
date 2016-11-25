@@ -9,7 +9,6 @@ import (
 	"github.com/cloudinsight/cloudinsight-agent/common/log"
 	"github.com/cloudinsight/cloudinsight-agent/common/metric"
 	"github.com/cloudinsight/cloudinsight-agent/common/plugin"
-	"github.com/cloudinsight/cloudinsight-agent/common/util"
 )
 
 // Agent runs agent and collects data based on the given config
@@ -43,7 +42,7 @@ func panicRecover(plugin *plugin.RunningPlugin) {
 // reporting interval.
 func (a *Agent) collect(
 	shutdown chan struct{},
-	plugin *plugin.RunningPlugin,
+	rp *plugin.RunningPlugin,
 	interval time.Duration,
 	metricC chan metric.Metric,
 ) error {
@@ -53,7 +52,7 @@ func (a *Agent) collect(
 	agg := NewAggregator(metricC, a.conf)
 
 	for {
-		collectWithTimeout(shutdown, plugin, agg, interval)
+		collectWithTimeout(shutdown, rp, agg, interval)
 
 		select {
 		case <-shutdown:
@@ -80,31 +79,25 @@ func collectWithTimeout(
 	done := make(chan error)
 
 	var wg sync.WaitGroup
-	for i, instance := range rp.Config.Instances {
-		err := util.FillStruct(instance, rp.Plugin)
-		if err != nil {
-			log.Errorf("ERROR to parse plugin instance [%s#%d]: %s", rp.Name, i, err)
-			continue
-		}
-
+	for i, plug := range rp.Plugins {
 		wg.Add(1)
 		go func() {
 			defer panicRecover(rp)
 			defer wg.Done()
 
-			done <- rp.Plugin.Check(agg)
+			done <- plug.Check(agg)
 			agg.Flush()
 		}()
 
 		select {
 		case err := <-done:
 			if err != nil {
-				log.Infof("ERROR in plugin [%s]: %s", rp.Name, err)
+				log.Errorf("ERROR to check plugin instance [%s#%d]: %s", rp.Name, i, err)
 			}
 		case <-ticker.C:
-			log.Infof("ERROR: plugin [%s] took longer to collect than "+
+			log.Infof("ERROR: plugin instance [%s#%d] took longer to collect than "+
 				"collection interval (%s)",
-				rp.Name, timeout)
+				rp.Name, i, timeout)
 		case <-shutdown:
 			return
 		}

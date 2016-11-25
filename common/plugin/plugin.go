@@ -17,9 +17,8 @@ type Plugin interface {
 
 // RunningPlugin XXX
 type RunningPlugin struct {
-	Name   string
-	Plugin Plugin
-	Config *Config
+	Name    string
+	Plugins []Plugin
 }
 
 // InitConfig XXX

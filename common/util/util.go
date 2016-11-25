@@ -1,12 +1,11 @@
 package util
 
 import (
-	"errors"
-	"fmt"
 	"hash/fnv"
 	"math"
-	"reflect"
-	"strings"
+
+	"github.com/cloudinsight/cloudinsight-agent/common/log"
+	yaml "gopkg.in/yaml.v2"
 )
 
 // Cast rounds num to integer.
@@ -47,45 +46,16 @@ func Hash(s string) uint32 {
 }
 
 // FillStruct converts map to struct.
-// See http://stackoverflow.com/questions/26744873/converting-map-to-struct.
 func FillStruct(m map[string]interface{}, s interface{}) error {
-	structValue := reflect.ValueOf(s).Elem()
-
-	for i := 0; i < structValue.NumField(); i++ {
-		structFieldValue := structValue.Field(i)
-		structFieldType := structValue.Type().Field(i)
-		tag := strings.ToLower(structFieldType.Name)
-		if structFieldType.Tag != "" {
-			tag = structFieldType.Tag.Get("yaml")
-		}
-
-		if value, ok := m[tag]; ok {
-			if !structFieldValue.CanSet() {
-				return fmt.Errorf("Cannot set %s field value", tag)
-			}
-
-			val := reflect.ValueOf(value)
-			if tag == "tags" {
-				var tags []string
-				for _, t := range val.Interface().([]interface{}) {
-					switch v := t.(type) {
-					case string:
-						tags = append(tags, v)
-					default:
-						return fmt.Errorf("Tags type %s not supported", v)
-					}
-				}
-				structFieldValue.Set(reflect.ValueOf(tags))
-				return nil
-			}
-
-			if structFieldValue.Type() != val.Type() {
-				return errors.New("Provided value type didn't match obj field type")
-			}
-
-			structFieldValue.Set(val)
-		}
+	d, err := yaml.Marshal(&m)
+	if err != nil {
+		log.Errorf("Failed to marshal instance %v", m)
+		return err
 	}
-
+	err = yaml.Unmarshal([]byte(string(d)), s)
+	if err != nil {
+		log.Errorf("Failed to unmarshal instance %s", string(d))
+		return err
+	}
 	return nil
 }

@@ -96,7 +96,6 @@ func (pf *PHPFPM) Check(agg metric.Aggregator) error {
 			switch key {
 			case "pool":
 				tags = append(tags, "pool:"+strings.Trim(part, " "))
-				continue
 			default:
 				value, err := strconv.ParseFloat(part, 64)
 				if err != nil {

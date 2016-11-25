@@ -1,0 +1,44 @@
+init_config:
+
+instances:
+  -
+    # specify servers via a url matching:
+    #  [username[:password]@][protocol[(address)]]/[?tls=[true|false|skip-verify]]
+    #  see https://github.com/go-sql-driver/mysql#dsn-data-source-name
+    #  e.g.
+    #    db_user:passwd@tcp(127.0.0.1:3306)/?tls=false
+    #    db_user@tcp(127.0.0.1:3306)/?tls=false
+    server: "tcp(127.0.0.1:3306)/"
+
+    # Custom tags
+    # tags: ["tag_key1:tag_value1", "tag_key2:tag_value2"]
+    options:               # Optional
+      replication: false
+      galera_cluster: false
+      extra_status_metrics: true
+      extra_innodb_metrics: true
+      extra_performance_metrics: true
+      schema_size_metrics: false
+      disable_innodb_metrics: false
+
+    #     NOTE: disable_innodb_metrics should only be used by users with older (unsupported) versions of
+    #           MySQL who do not run/have innodb engine support and may experiment issue otherwise.
+    #           Should this flag be enabled you will only receive a small subset of metrics.
+    #
+    #     NOTE: extra_performance_metrics will only be reported if `performance_schema` is enabled
+    #           in the MySQL instance and if the version for that instance is >= 5.6.0
+    #
+    #           extra_performance_metrics and schema_size_metrics will run two heavier queries
+    #           against your DB to compute the relevant metrics for all your existing schemas.
+    #           Due to the nature of these calls, if you have a high number of tables and/or schemas,
+    #           you may be subject to some negative impact in the performance of your DB.
+    #           Please bear that in mind when enabling them.
+    #           Metrics provided by the options:
+    #                     - mysql.info.schema.size (per schame)
+    #                     - mysql.performance.query_run_time.avg (per schema)
+    #                     - mysql.performance.digest_95th_percentile.avg_us
+    #
+    #           With the addition of new metrics to the MySQL catalog starting with agent >=4.3.0, because
+    #           we query additional schemas to get this full set of metrics. Some of these require the user
+    #           defined for the instance to have PROCESS and SELECT privileges. Please take a look at the
+    #           MySQL integration tile in the Cloudinsight WebUI for further instructions.

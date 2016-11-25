@@ -92,30 +92,58 @@ func TestHash(t *testing.T) {
 
 type MyStruct struct {
 	StatusURL string `yaml:"status_url"`
-	Timeout   int64
 	User      string
 	password  string
+	Tags      []string
+	Timeout   int64
+	Options   options
+}
+
+type options struct {
+	Replication   bool
+	GaleraCluster bool `yaml:"galera_cluster"`
 }
 
 func TestFillStruct(t *testing.T) {
 	myData := make(map[string]interface{})
 	myData["status_url"] = "http://localhost"
+	myData["user"] = "admin"
+	myData["password"] = "admin"
+	myData["tags"] = []interface{}{"test"}
 
 	result := &MyStruct{}
 	err := FillStruct(myData, result)
 	assert.NoError(t, err)
 	assert.Equal(t, "http://localhost", result.StatusURL)
+	assert.Equal(t, "admin", result.User)
+	assert.Empty(t, result.password)
+	assert.Equal(t, []string{"test"}, result.Tags)
+}
 
-	myData = make(map[string]interface{})
-	myData["user"] = "admin"
-	myData["password"] = "admin"
+func TestFillStructWithWrongType(t *testing.T) {
+	myData := make(map[string]interface{})
+	myData["user"] = 11
+
+	result := &MyStruct{}
+	err := FillStruct(myData, result)
+	assert.Equal(t, "11", result.User)
+
+	myData["timeout"] = "10"
 	err = FillStruct(myData, result)
 	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "Cannot set password field value")
+	assert.Contains(t, err.Error(), "yaml: unmarshal errors:")
+}
 
-	myData = make(map[string]interface{})
-	myData["timeout"] = 10
-	err = FillStruct(myData, result)
-	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "Provided value type didn't match obj field type")
+func TestFillStructWithComplexType(t *testing.T) {
+	myData := make(map[string]interface{})
+	myData["options"] = map[string]interface{}{
+		"replication":    true,
+		"galera_cluster": false,
+	}
+
+	result := &MyStruct{}
+	err := FillStruct(myData, result)
+	assert.NoError(t, err)
+	assert.True(t, result.Options.Replication)
+	assert.False(t, result.Options.GaleraCluster)
 }
