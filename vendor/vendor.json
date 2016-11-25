@@ -76,6 +76,12 @@
 			"revisionTime": "2016-01-08T17:52:44Z"
 		},
 		{
+			"checksumSHA1": "5EDo3sfuw3z3z0kpnreuTfSxmfg=",
+			"path": "github.com/go-sql-driver/mysql",
+			"revision": "1fca743146605a172a266e1654e01e5cd5669bee",
+			"revisionTime": "2016-03-01T13:25:58Z"
+		},
+		{
 			"checksumSHA1": "gcLub3oB+u4QrOJZcYmk/y2AP4k=",
 			"path": "github.com/nu7hatch/gouuid",
 			"revision": "179d4d0c4d8d407a32af483c2354df1d2c91e6c3",
