@@ -1053,9 +1053,9 @@ func atof(str string) float64 {
 	return val
 }
 
-func updateMap(dest map[string]metricField, src map[string]metricField) {
+func updateMap(dst, src map[string]metricField) {
 	for k, v := range src {
-		dest[k] = v
+		dst[k] = v
 	}
 }
 

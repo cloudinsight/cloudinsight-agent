@@ -348,6 +348,7 @@ func TestCollectMetrics(t *testing.T) {
 	mock.ExpectQuery("SELECT table_schema, (.+)total_mb FROM information_schema.tables (.+)").WillReturnRows(tableSchemaResult)
 
 	m := &MySQL{
+		Tags: []string{"env:production"},
 		Options: Options{
 			Replication:             true,
 			GaleraCluster:           true,
@@ -439,11 +440,12 @@ func TestCollectMetrics(t *testing.T) {
 		"mysql.performance.threads_running":         float64(1),
 		// "mysql.replication.slave_running":           float64(0),
 	}
+	tags := []string{"env:production"}
 	for name, value := range fields {
-		testutil.AssertContainsMetricWithTags(t, metrics, name, value, nil)
+		testutil.AssertContainsMetricWithTags(t, metrics, name, value, tags)
 	}
 
-	tags := []string{"schema:information_schema"}
+	tags = []string{"schema:information_schema"}
 	testutil.AssertContainsMetricWithTags(t, metrics, "mysql.info.schema.size", 0.00878906, tags)
 
 	// we make sure that all expectations were met
