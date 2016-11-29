@@ -461,18 +461,18 @@ func TestParseInnodbStatus55(t *testing.T) {
 	assert.EqualValues(t, stat["Innodb_mutex_spin_waits"], 2)
 	assert.EqualValues(t, stat["Innodb_mutex_spin_rounds"], 31)
 	assert.EqualValues(t, stat["Innodb_mutex_os_waits"], 1)
-	assert.EqualValues(t, stat["Innodb_semaphore_waits"], 0)  // empty
-	assert.EqualValues(t, stat["Innodb_mutex_spin_waits"], 2) // empty
+	assert.EqualValues(t, stat["Innodb_semaphore_waits"], 0)
+	assert.EqualValues(t, stat["Innodb_mutex_spin_waits"], 2)
 	// Innodb Transactions
 	assert.EqualValues(t, stat["Innodb_history_list_length"], 324)
 	assert.EqualValues(t, stat["Innodb_current_transactions"], 1)
 	assert.EqualValues(t, stat["Innodb_active_transactions"], 0)
-	assert.EqualValues(t, stat["Innodb_row_lock_time"], 0) // empty
+	assert.EqualValues(t, stat["Innodb_row_lock_time"], 0)
 	assert.EqualValues(t, stat["Innodb_read_views"], 1)
-	assert.EqualValues(t, stat["Innodb_tables_in_use"], 0)       // empty
-	assert.EqualValues(t, stat["Innodb_locked_tables"], 0)       // empty
-	assert.EqualValues(t, stat["Innodb_lock_structs"], 0)        // empty
-	assert.EqualValues(t, stat["Innodb_locked_transactions"], 0) // empty
+	assert.EqualValues(t, stat["Innodb_tables_in_use"], 0)
+	assert.EqualValues(t, stat["Innodb_locked_tables"], 0)
+	assert.EqualValues(t, stat["Innodb_lock_structs"], 0)
+	assert.EqualValues(t, stat["Innodb_locked_transactions"], 0)
 	// File I/O
 	assert.EqualValues(t, stat["Innodb_os_file_reads"], 454)
 	assert.EqualValues(t, stat["Innodb_os_file_writes"], 3)
@@ -503,13 +503,13 @@ func TestParseInnodbStatus55(t *testing.T) {
 	// Buffer Pool and Memory
 	assert.EqualValues(t, stat["Innodb_mem_total"], 137363456)
 	assert.EqualValues(t, stat["Innodb_mem_additional_pool"], 0)
-	assert.EqualValues(t, stat["Innodb_mem_adaptive_hash"], 0)   // empty
-	assert.EqualValues(t, stat["Innodb_mem_page_hash"], 0)       // empty
-	assert.EqualValues(t, stat["Innodb_mem_dictionary"], 0)      // empty
-	assert.EqualValues(t, stat["Innodb_mem_file_system"], 0)     // empty
-	assert.EqualValues(t, stat["Innodb_mem_lock_system"], 0)     // empty
-	assert.EqualValues(t, stat["Innodb_mem_recovery_system"], 0) // empty
-	assert.EqualValues(t, stat["Innodb_mem_thread_hash"], 0)     // empty
+	assert.EqualValues(t, stat["Innodb_mem_adaptive_hash"], 0)
+	assert.EqualValues(t, stat["Innodb_mem_page_hash"], 0)
+	assert.EqualValues(t, stat["Innodb_mem_dictionary"], 0)
+	assert.EqualValues(t, stat["Innodb_mem_file_system"], 0)
+	assert.EqualValues(t, stat["Innodb_mem_lock_system"], 0)
+	assert.EqualValues(t, stat["Innodb_mem_recovery_system"], 0)
+	assert.EqualValues(t, stat["Innodb_mem_thread_hash"], 0)
 	assert.EqualValues(t, stat["Innodb_buffer_pool_pages_total"], 8192)
 	assert.EqualValues(t, stat["Innodb_buffer_pool_pages_free"], 7749)
 	assert.EqualValues(t, stat["Innodb_buffer_pool_pages_data"], 443)
@@ -540,18 +540,18 @@ func TestParseInnodbStatus56(t *testing.T) {
 	assert.EqualValues(t, stat["Innodb_mutex_spin_waits"], 287)
 	assert.EqualValues(t, stat["Innodb_mutex_spin_rounds"], 4777)
 	assert.EqualValues(t, stat["Innodb_mutex_os_waits"], 153)
-	assert.EqualValues(t, stat["Innodb_semaphore_waits"], 0)    // empty
-	assert.EqualValues(t, stat["Innodb_mutex_spin_waits"], 287) // empty
+	assert.EqualValues(t, stat["Innodb_semaphore_waits"], 0)
+	assert.EqualValues(t, stat["Innodb_mutex_spin_waits"], 287)
 	// Innodb Transactions
 	assert.EqualValues(t, stat["Innodb_history_list_length"], 1313)
 	assert.EqualValues(t, stat["Innodb_current_transactions"], 1)
 	assert.EqualValues(t, stat["Innodb_active_transactions"], 0)
-	assert.EqualValues(t, stat["Innodb_row_lock_time"], 0) // empty
+	assert.EqualValues(t, stat["Innodb_row_lock_time"], 0)
 	assert.EqualValues(t, stat["Innodb_read_views"], 0)
-	assert.EqualValues(t, stat["Innodb_tables_in_use"], 0)       // empty
-	assert.EqualValues(t, stat["Innodb_locked_tables"], 0)       // empty
-	assert.EqualValues(t, stat["Innodb_lock_structs"], 0)        // empty
-	assert.EqualValues(t, stat["Innodb_locked_transactions"], 0) // empty
+	assert.EqualValues(t, stat["Innodb_tables_in_use"], 0)
+	assert.EqualValues(t, stat["Innodb_locked_tables"], 0)
+	assert.EqualValues(t, stat["Innodb_lock_structs"], 0)
+	assert.EqualValues(t, stat["Innodb_locked_transactions"], 0)
 	// File I/O
 	assert.EqualValues(t, stat["Innodb_os_file_reads"], 692)
 	assert.EqualValues(t, stat["Innodb_os_file_writes"], 6851)
@@ -582,13 +582,13 @@ func TestParseInnodbStatus56(t *testing.T) {
 	// Buffer Pool and Memory
 	assert.EqualValues(t, stat["Innodb_mem_total"], 137363456)
 	assert.EqualValues(t, stat["Innodb_mem_additional_pool"], 0)
-	assert.EqualValues(t, stat["Innodb_mem_adaptive_hash"], 0)   // empty
-	assert.EqualValues(t, stat["Innodb_mem_page_hash"], 0)       // empty
-	assert.EqualValues(t, stat["Innodb_mem_dictionary"], 0)      // empty
-	assert.EqualValues(t, stat["Innodb_mem_file_system"], 0)     // empty
-	assert.EqualValues(t, stat["Innodb_mem_lock_system"], 0)     // empty
-	assert.EqualValues(t, stat["Innodb_mem_recovery_system"], 0) // empty
-	assert.EqualValues(t, stat["Innodb_mem_thread_hash"], 0)     // empty
+	assert.EqualValues(t, stat["Innodb_mem_adaptive_hash"], 0)
+	assert.EqualValues(t, stat["Innodb_mem_page_hash"], 0)
+	assert.EqualValues(t, stat["Innodb_mem_dictionary"], 0)
+	assert.EqualValues(t, stat["Innodb_mem_file_system"], 0)
+	assert.EqualValues(t, stat["Innodb_mem_lock_system"], 0)
+	assert.EqualValues(t, stat["Innodb_mem_recovery_system"], 0)
+	assert.EqualValues(t, stat["Innodb_mem_thread_hash"], 0)
 	assert.EqualValues(t, stat["Innodb_buffer_pool_pages_total"], 8191)
 	assert.EqualValues(t, stat["Innodb_buffer_pool_pages_free"], 7669)
 	assert.EqualValues(t, stat["Innodb_buffer_pool_pages_data"], 518)
