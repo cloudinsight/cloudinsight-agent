@@ -180,6 +180,12 @@
 			"revisionTime": "2016-07-15T05:43:45Z"
 		},
 		{
+			"checksumSHA1": "MeXzn+OFdrU9/TGeMVz0GsRX+dM=",
+			"path": "gopkg.in/DATA-DOG/go-sqlmock.v1",
+			"revision": "d4cd2ca2ad1cc2130bba385aab072218f131f636",
+			"revisionTime": "2016-11-02T12:49:59Z"
+		},
+		{
 			"checksumSHA1": "+OgOXBoiQ+X+C2dsAeiOHwBIEH0=",
 			"path": "gopkg.in/yaml.v2",
 			"revision": "a83829b6f1293c91addabc89d0571c246397bbf4",
