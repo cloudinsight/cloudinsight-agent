@@ -92,12 +92,6 @@ func TestCollectWithMultiInstances(t *testing.T) {
 			&testPlugin{[]string{"instance:foo"}},
 			&testPlugin{[]string{"instance:bar"}},
 		},
-		// Config: &plugin.Config{
-		// Instances: []plugin.Instance{
-		// map[string]interface{}{"tags": []interface{}{"instance:foo"}},
-		// map[string]interface{}{"tags": []interface{}{"instance:bar"}},
-		// },
-		// },
 	}
 
 	a := &Agent{

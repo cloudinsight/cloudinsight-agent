@@ -18,8 +18,8 @@ type Checker func(agg metric.Aggregator) error
 // MockAggregator XXX
 func MockAggregator(
 	metrics chan metric.Metric,
-	conf *config.Config,
 ) metric.Aggregator {
+	conf := &config.Config{}
 	return metric.NewAggregator(metrics, 1, conf.GetHostname(), formatter, nil, nil, 0)
 }
 
@@ -38,11 +38,9 @@ func AssertCheckWithMetrics(
 ) {
 	metricC := make(chan metric.Metric, 100)
 	defer close(metricC)
-	conf := &config.Config{}
-	agg := MockAggregator(metricC, conf)
-	var err error
+	agg := MockAggregator(metricC)
 
-	err = checker(agg)
+	err := checker(agg)
 	require.NoError(t, err)
 	agg.Flush()
 	assert.Len(t, metricC, expectedMetrics)
@@ -69,11 +67,9 @@ func AssertCheckWithRateMetrics(
 ) {
 	metricC := make(chan metric.Metric, 100)
 	defer close(metricC)
-	conf := &config.Config{}
-	agg := MockAggregator(metricC, conf)
-	var err error
+	agg := MockAggregator(metricC)
 
-	err = checker(agg)
+	err := checker(agg)
 	require.NoError(t, err)
 
 	// Wait a second for collecting rate metrics.
@@ -102,11 +98,9 @@ func AssertCheckWithLen(
 ) {
 	metricC := make(chan metric.Metric, 100)
 	defer close(metricC)
-	conf := &config.Config{}
-	agg := MockAggregator(metricC, conf)
-	var err error
+	agg := MockAggregator(metricC)
 
-	err = checker(agg)
+	err := checker(agg)
 	require.NoError(t, err)
 	agg.Flush()
 	assert.Len(t, metricC, expectedMetrics)

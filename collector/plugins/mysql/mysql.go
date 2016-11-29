@@ -50,7 +50,7 @@ const (
 	// metric queries
 	globalStatusQuery     = `SHOW /*!50002 GLOBAL */ STATUS`
 	globalVariablesQuery  = `SHOW GLOBAL VARIABLES`
-	innodbStatusQuery     = `SHOW /*!50000 ENGINE*/ INNODB STATUS`
+	innodbStatusQuery     = `SHOW /*!50000 ENGINE */ INNODB STATUS`
 	binaryLogsQuery       = `SHOW BINARY LOGS`
 	infoSchemaEngineQuery = `
         SELECT engine
@@ -125,8 +125,8 @@ var (
 
 	// Possibly from "SHOW GLOBAL VARIABLES;"
 	variablesVars = map[string]metricField{
-		"key_buffer_size":       {"mysql.myisam.key_buffer_size", gauge},
-		"key_cache_utilization": {"mysql.performance.key_cache_utilization", gauge},
+		"Key_buffer_size":       {"mysql.myisam.key_buffer_size", gauge},
+		"Key_cache_utilization": {"mysql.performance.key_cache_utilization", gauge},
 		"max_connections":       {"mysql.net.max_connections_available", gauge},
 		"query_cache_size":      {"mysql.performance.qcache_size", gauge},
 		"table_open_cache":      {"mysql.performance.table_open_cache", gauge},
@@ -335,9 +335,18 @@ func (m *MySQL) Check(agg metric.Aggregator) error {
 
 	defer db.Close()
 
+	err = m.collectMetrics(db, agg)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m *MySQL) collectMetrics(db *sql.DB, agg metric.Aggregator) error {
 	metrics := statusVars
 	fields := make(map[string]float64)
-	err = m.collectGlobalStatus(db, fields)
+	err := m.collectGlobalStatus(db, fields)
 	if err != nil {
 		return err
 	}
@@ -388,6 +397,31 @@ func (m *MySQL) Check(agg metric.Aggregator) error {
 	err = m.collectGlobalVariables(db, fields)
 	if err != nil {
 		return err
+	}
+	// Compute key cache utilization metric
+	var keyBlocksUnused, keyCacheBlockSize, keyBufferSize float64
+	if val, ok := fields["Key_blocks_unused"]; ok {
+		keyBlocksUnused = val
+	}
+	if val, ok := fields["key_cache_block_size"]; ok {
+		keyCacheBlockSize = val
+	}
+	if val, ok := fields["key_buffer_size"]; ok {
+		keyBufferSize = val
+	}
+	fields["Key_buffer_size"] = keyBufferSize
+
+	if keyBufferSize > 0 {
+
+		if val, ok := fields["Key_blocks_used"]; ok {
+			fields["Key_buffer_bytes_used"] = val * keyCacheBlockSize
+		}
+
+		if val, ok := fields["Key_blocks_not_flushed"]; ok {
+			fields["Key_buffer_bytes_unflushed"] = val * keyCacheBlockSize
+		}
+
+		fields["Key_cache_utilization"] = 1 - ((keyBlocksUnused * keyCacheBlockSize) / keyBufferSize)
 	}
 
 	updateMap(metrics, variablesVars)
@@ -453,7 +487,7 @@ func (m *MySQL) collectGlobalStatus(db *sql.DB, fields map[string]float64) error
 	}
 
 	var key string
-	var val interface{}
+	var val sql.RawBytes
 
 	for rows.Next() {
 		if err := rows.Scan(&key, &val); err != nil {
@@ -461,7 +495,7 @@ func (m *MySQL) collectGlobalStatus(db *sql.DB, fields map[string]float64) error
 		}
 
 		// convert numeric values to integer
-		value, err := strconv.ParseFloat(string(val.([]byte)), 64)
+		value, err := strconv.ParseFloat(string(val), 64)
 		if err != nil {
 			continue
 		}
@@ -741,7 +775,7 @@ func parseInnodbStatus(str string, p *map[string]float64) error {
 			}
 			continue
 		}
-		if strings.Index(line, "ibuf aio reads") == 0 {
+		if strings.Index(line, " ibuf aio reads") == 0 {
 			// ibuf aio reads: 0, log i/o's: 0, sync i/o's: 0
 			// or ibuf aio reads:, log i/o's:, sync i/o's:
 			if len(record) == 10 {
@@ -968,7 +1002,7 @@ func parseInnodbStatus(str string, p *map[string]float64) error {
 			(*p)["Innodb_rows_read"] = atof(record[10])
 			continue
 		}
-		if strings.Index(line, " queries inside InnoDB, ") == 0 {
+		if strings.Index(line, " queries inside InnoDB, ") > 0 {
 			// 0 queries inside InnoDB, 0 queries in queue
 			(*p)["Innodb_queries_inside"] = atof(record[0])
 			(*p)["Innodb_queries_queued"] = atof(record[4])

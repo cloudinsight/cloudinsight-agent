@@ -4,12 +4,140 @@ import (
 	"database/sql"
 	"testing"
 
+	"github.com/cloudinsight/cloudinsight-agent/common"
+	"github.com/cloudinsight/cloudinsight-agent/common/metric"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	"gopkg.in/DATA-DOG/go-sqlmock.v1"
 )
 
-func TestParseInnodbStatus55(t *testing.T) {
+var (
+	globalStatusResult = sqlmock.NewRows([]string{"key", "val"}).
+		// Command Metrics
+		AddRow("Slow_queries", 0).
+		AddRow("Questions", 1791).
+		AddRow("Queries", 1793).
+		AddRow("Com_select", 754).
+		AddRow("Com_insert", 0).
+		AddRow("Com_update", 0).
+		AddRow("Com_delete", 0).
+		AddRow("Com_replace", 0).
+		AddRow("Com_load", 0).
+		AddRow("Com_insert_select", 0).
+		AddRow("Com_update_multi", 0).
+		AddRow("Com_delete_multi", 0).
+		AddRow("Com_replace_select", 0).
+		// Connection Metrics
+		AddRow("Connections", 6502).
+		AddRow("Max_used_connections", 3).
+		AddRow("Aborted_clients", 1).
+		AddRow("Aborted_connects", 0).
+		// Table Cache Metrics
+		AddRow("Open_files", 48).
+		AddRow("Open_tables", 63).
+		// Network Metrics
+		AddRow("Bytes_sent", 139980303).
+		AddRow("Bytes_received", 5698867).
+		// Query Cache Metrics
+		AddRow("Qcache_hits", 0).
+		AddRow("Qcache_inserts", 0).
+		AddRow("Qcache_lowmem_prunes", 0).
+		// Table Lock Metrics
+		AddRow("Table_locks_waited", 0).
+		// Temporary Table Metrics
+		AddRow("Created_tmp_tables", 454633).
+		AddRow("Created_tmp_disk_tables", 106664).
+		AddRow("Created_tmp_files", 6).
+		// Thread Metrics
+		AddRow("Threads_connected", 1).
+		AddRow("Threads_running", 1).
+		// MyISAM Metrics
+		AddRow("Key_blocks_not_flushed", 0).
+		AddRow("Key_blocks_unused", 13396).
+		AddRow("Key_blocks_used", 0).
+		AddRow("Key_read_requests", 0).
+		AddRow("Key_reads", 0).
+		AddRow("Key_write_requests", 0).
+		AddRow("Key_writes", 0).
+		// InnoDB metrics
+		AddRow("Innodb_data_reads", 454).
+		AddRow("Innodb_data_writes", 3).
+		AddRow("Innodb_data_pending_fsyncs", 0).
+		AddRow("Innodb_data_pending_reads", 0).
+		AddRow("Innodb_data_pending_writes", 0).
+		AddRow("Innodb_os_log_fsyncs", 3).
+		AddRow("Innodb_row_lock_waits", 0).
+		AddRow("Innodb_row_lock_time", 0).
+		AddRow("Innodb_row_lock_current_waits", 0).
+		AddRow("Innodb_buffer_pool_bytes_dirty", 0).
+		AddRow("Innodb_buffer_pool_read_requests", 8788).
+		AddRow("Innodb_buffer_pool_reads", 444).
+		AddRow("Innodb_os_log_pending_fsyncs", 0).
+		AddRow("Innodb_os_log_pending_writes", 0).
+		AddRow("Innodb_page_size", 16384).
+		// Additional Vars
+		AddRow("Binlog_cache_disk_use", 0).
+		AddRow("Binlog_cache_use", 0).
+		AddRow("Handler_commit", 0).
+		AddRow("Handler_delete", 0).
+		AddRow("Handler_prepare", 0).
+		AddRow("Handler_read_first", 5).
+		AddRow("Handler_read_key", 9377).
+		AddRow("Handler_read_next", 0).
+		AddRow("Handler_read_prev", 0).
+		AddRow("Handler_read_rnd", 857).
+		AddRow("Handler_read_rnd_next", 658751).
+		AddRow("Handler_rollback", 0).
+		AddRow("Handler_update", 7848).
+		AddRow("Handler_write", 975710).
+		AddRow("Opened_tables", 63).
+		AddRow("Qcache_total_blocks", 1).
+		AddRow("Qcache_free_blocks", 1).
+		AddRow("Qcache_free_memory", 16759696).
+		AddRow("Qcache_not_cached", 3129).
+		AddRow("Qcache_queries_in_cache", 0).
+		AddRow("Select_full_join", 673).
+		AddRow("Select_full_range_join", 0).
+		AddRow("Select_range", 0).
+		AddRow("Select_range_check", 0).
+		AddRow("Select_scan", 4523).
+		AddRow("Sort_merge_passes", 0).
+		AddRow("Sort_range", 0).
+		AddRow("Sort_rows", 857).
+		AddRow("Sort_scan", 857).
+		AddRow("Table_locks_immediate", 62).
+		// AddRow("Table_locks_immediate_rate", 0).
+		AddRow("Threads_cached", 1).
+		AddRow("Threads_created", 2).
+		AddRow("Table_open_cache_hits", 24851).
+		AddRow("Table_open_cache_misses", 85).
+		// Galera Vars
+		AddRow("wsrep_cluster_size", 0).
+		AddRow("wsrep_local_recv_queue_avg", 0).
+		AddRow("wsrep_flow_control_paused", 0).
+		AddRow("wsrep_cert_deps_distance", 0).
+		AddRow("wsrep_local_send_queue_avg", 0)
 
-	stub := `=====================================
+	globalVariablesResult = sqlmock.NewRows([]string{"key", "val"}).
+				AddRow("key_buffer_size", 16777216).
+				AddRow("key_cache_block_size", 1024).
+				AddRow("log_bin", "ON").
+				AddRow("max_connections", 151).
+				AddRow("performance_schema", "ON").
+				AddRow("query_cache_size", 16777216).
+				AddRow("table_open_cache", 400).
+				AddRow("thread_cache_size", 8)
+
+	binaryLogsResult = sqlmock.NewRows([]string{"Log_name", "File_size"}).
+				AddRow("mysql-bin.000001", 107)
+
+	engineResult = sqlmock.NewRows([]string{"engine"}).AddRow("InnoDB")
+
+	tableSchemaResult = sqlmock.NewRows([]string{"table_schema", "total_mb"}).
+				AddRow("information_schema", 0.00878906)
+
+	stubInnodbStatus55 = `
+=====================================
 161125 18:50:11 INNODB MONITOR OUTPUT
 =====================================
 Per second averages calculated from the last 11 seconds
@@ -103,87 +231,9 @@ Number of rows inserted 0, updated 0, deleted 0, read 0
 ----------------------------
 END OF INNODB MONITOR OUTPUT
 ============================`
-	stat := make(map[string]float64)
 
-	err := parseInnodbStatus(stub, &stat)
-	assert.NoError(t, err)
-	// Innodb Semaphores
-	assert.EqualValues(t, stat["Innodb_mutex_spin_waits"], 2)
-	assert.EqualValues(t, stat["Innodb_mutex_spin_rounds"], 31)
-	assert.EqualValues(t, stat["Innodb_mutex_os_waits"], 1)
-	assert.EqualValues(t, stat["Innodb_semaphore_waits"], 0)  // empty
-	assert.EqualValues(t, stat["Innodb_mutex_spin_waits"], 2) // empty
-	// Innodb Transactions
-	assert.EqualValues(t, stat["Innodb_history_list_length"], 324)
-	assert.EqualValues(t, stat["Innodb_current_transactions"], 1)
-	assert.EqualValues(t, stat["Innodb_active_transactions"], 0)
-	assert.EqualValues(t, stat["Innodb_row_lock_time"], 0) // empty
-	assert.EqualValues(t, stat["Innodb_read_views"], 1)
-	assert.EqualValues(t, stat["Innodb_tables_in_use"], 0)       // empty
-	assert.EqualValues(t, stat["Innodb_locked_tables"], 0)       // empty
-	assert.EqualValues(t, stat["Innodb_lock_structs"], 0)        // empty
-	assert.EqualValues(t, stat["Innodb_locked_transactions"], 0) // empty
-	// File I/O
-	assert.EqualValues(t, stat["Innodb_os_file_reads"], 454)
-	assert.EqualValues(t, stat["Innodb_os_file_writes"], 3)
-	assert.EqualValues(t, stat["Innodb_os_file_fsyncs"], 3)
-	assert.EqualValues(t, stat["Innodb_pending_normal_aio_reads"], 0)
-	assert.EqualValues(t, stat["Innodb_pending_normal_aio_writes"], 0)
-	assert.EqualValues(t, stat["Innodb_pending_ibuf_aio_reads"], 0)
-	assert.EqualValues(t, stat["Innodb_pending_aio_log_ios"], 0)
-	assert.EqualValues(t, stat["Innodb_pending_aio_sync_ios"], 0)
-	assert.EqualValues(t, stat["Innodb_pending_log_flushes"], 0)
-	assert.EqualValues(t, stat["Innodb_pending_buf_pool_flushes"], 0)
-	// Insert Buffer and Adaptive Hash Index
-	assert.EqualValues(t, stat["Innodb_ibuf_size"], 1)
-	assert.EqualValues(t, stat["Innodb_ibuf_free_list"], 0)
-	assert.EqualValues(t, stat["Innodb_ibuf_segment_size"], 2)
-	assert.EqualValues(t, stat["Innodb_ibuf_merged_inserts"], 0)
-	assert.EqualValues(t, stat["Innodb_ibuf_merged_delete_marks"], 0)
-	assert.EqualValues(t, stat["Innodb_ibuf_merged_deletes"], 0)
-	assert.EqualValues(t, stat["Innodb_hash_index_cells_total"], 276707)
-	assert.EqualValues(t, stat["Innodb_hash_index_cells_used"], 0)
-	// Log
-	assert.EqualValues(t, stat["Innodb_log_writes"], 8)
-	assert.EqualValues(t, stat["Innodb_pending_log_writes"], 0)
-	assert.EqualValues(t, stat["Innodb_pending_checkpoint_writes"], 0)
-	assert.EqualValues(t, stat["Innodb_lsn_current"], 2744156)
-	assert.EqualValues(t, stat["Innodb_lsn_flushed"], 2744156)
-	assert.EqualValues(t, stat["Innodb_lsn_last_checkpoint"], 2744156)
-	// Buffer Pool and Memory
-	assert.EqualValues(t, stat["Innodb_mem_total"], 137363456)
-	assert.EqualValues(t, stat["Innodb_mem_additional_pool"], 0)
-	assert.EqualValues(t, stat["Innodb_mem_adaptive_hash"], 0)   // empty
-	assert.EqualValues(t, stat["Innodb_mem_page_hash"], 0)       // empty
-	assert.EqualValues(t, stat["Innodb_mem_dictionary"], 0)      // empty
-	assert.EqualValues(t, stat["Innodb_mem_file_system"], 0)     // empty
-	assert.EqualValues(t, stat["Innodb_mem_lock_system"], 0)     // empty
-	assert.EqualValues(t, stat["Innodb_mem_recovery_system"], 0) // empty
-	assert.EqualValues(t, stat["Innodb_mem_thread_hash"], 0)     // empty
-	assert.EqualValues(t, stat["Innodb_buffer_pool_pages_total"], 8192)
-	assert.EqualValues(t, stat["Innodb_buffer_pool_pages_free"], 7749)
-	assert.EqualValues(t, stat["Innodb_buffer_pool_pages_data"], 443)
-	assert.EqualValues(t, stat["Innodb_buffer_pool_pages_dirty"], 0)
-	assert.EqualValues(t, stat["Innodb_buffer_pool_read_ahead"], 0)
-	assert.EqualValues(t, stat["Innodb_buffer_pool_read_ahead_evicted"], 0)
-	assert.EqualValues(t, stat["Innodb_buffer_pool_read_ahead_rnd"], 0)
-	assert.EqualValues(t, stat["Innodb_pages_read"], 443)
-	assert.EqualValues(t, stat["Innodb_pages_created"], 0.00)
-	assert.EqualValues(t, stat["Innodb_pages_written"], 0.00)
-	// Row Operations
-	assert.EqualValues(t, stat["Innodb_rows_inserted"], 0)
-	assert.EqualValues(t, stat["Innodb_rows_updated"], 0)
-	assert.EqualValues(t, stat["Innodb_rows_deleted"], 0)
-	assert.EqualValues(t, stat["Innodb_rows_read"], 0)
-	assert.EqualValues(t, stat["Innodb_queries_inside"], 0)
-	assert.EqualValues(t, stat["Innodb_queries_queued"], 0)
-	// etc
-	assert.EqualValues(t, stat["Innodb_checkpoint_age"], 0)
-}
-
-func TestParseInnodbStatus56(t *testing.T) {
-
-	stub := `=====================================
+	stubInnodbStatus56 = `
+=====================================
 2016-11-25 19:36:16 7fd02cb4f700 INNODB MONITOR OUTPUT
 =====================================
 Per second averages calculated from the last 25 seconds
@@ -279,9 +329,212 @@ Number of rows inserted 93, updated 645, deleted 27, read 362189
 ----------------------------
 END OF INNODB MONITOR OUTPUT
 ============================`
+
+	innodbStatusResult = sqlmock.NewRows([]string{"type", "name", "status"}).AddRow("InnoDB", "", stubInnodbStatus55)
+)
+
+func TestCollectMetrics(t *testing.T) {
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+	}
+	defer db.Close()
+
+	mock.ExpectQuery("^SHOW (.+) GLOBAL (.+) STATUS$").WillReturnRows(globalStatusResult)
+	mock.ExpectQuery("SELECT engine FROM information_schema.ENGINES (.+)").WillReturnRows(engineResult)
+	mock.ExpectQuery("^SHOW (.+) ENGINE (.+) INNODB STATUS$").WillReturnRows(innodbStatusResult)
+	mock.ExpectQuery(globalVariablesQuery).WillReturnRows(globalVariablesResult)
+	mock.ExpectQuery(binaryLogsQuery).WillReturnRows(binaryLogsResult)
+	mock.ExpectQuery("SELECT table_schema, (.+)total_mb FROM information_schema.tables (.+)").WillReturnRows(tableSchemaResult)
+
+	m := &MySQL{
+		Options: Options{
+			Replication:             true,
+			GaleraCluster:           true,
+			ExtraStatusMetrics:      true,
+			ExtraInnodbMetrics:      true,
+			ExtraPerformanceMetrics: true,
+			SchemaSizeMetrics:       true,
+			DisableInnodbMetrics:    false,
+		},
+	}
+	metricC := make(chan metric.Metric, 100)
+	defer close(metricC)
+	agg := testutil.MockAggregator(metricC)
+
+	err = m.collectMetrics(db, agg)
+	require.NoError(t, err)
+	agg.Flush()
+	expectedMetrics := 68
+	assert.Len(t, metricC, expectedMetrics)
+
+	metrics := make([]metric.Metric, expectedMetrics)
+	for i := 0; i < expectedMetrics; i++ {
+		metrics[i] = <-metricC
+	}
+
+	fields := map[string]float64{
+		"mysql.binlog.cache_disk_use":              float64(0),
+		"mysql.binlog.cache_use":                   float64(0),
+		"mysql.binlog.disk_use":                    float64(107),
+		"mysql.innodb.buffer_pool_data":            float64(7258112),
+		"mysql.innodb.buffer_pool_dirty":           float64(0),
+		"mysql.innodb.buffer_pool_free":            float64(126959616),
+		"mysql.innodb.buffer_pool_pages_data":      float64(443),
+		"mysql.innodb.buffer_pool_pages_dirty":     float64(0),
+		"mysql.innodb.buffer_pool_pages_free":      float64(7749),
+		"mysql.innodb.buffer_pool_pages_total":     float64(8192),
+		"mysql.innodb.buffer_pool_read_ahead_rnd":  float64(0),
+		"mysql.innodb.buffer_pool_total":           float64(134217728),
+		"mysql.innodb.buffer_pool_used":            float64(7258112),
+		"mysql.innodb.buffer_pool_utilization":     float64(8192-7749) / float64(8192),
+		"mysql.innodb.checkpoint_age":              float64(0),
+		"mysql.innodb.current_transactions":        float64(1),
+		"mysql.innodb.data_pending_fsyncs":         float64(0),
+		"mysql.innodb.data_pending_reads":          float64(0),
+		"mysql.innodb.data_pending_writes":         float64(0),
+		"mysql.innodb.hash_index_cells_total":      float64(276707),
+		"mysql.innodb.hash_index_cells_used":       float64(0),
+		"mysql.innodb.history_list_length":         float64(324),
+		"mysql.innodb.ibuf_free_list":              float64(0),
+		"mysql.innodb.ibuf_segment_size":           float64(2),
+		"mysql.innodb.ibuf_size":                   float64(1),
+		"mysql.innodb.mem_additional_pool":         float64(0),
+		"mysql.innodb.mem_total":                   float64(137363456),
+		"mysql.innodb.os_log_pending_fsyncs":       float64(0),
+		"mysql.innodb.os_log_pending_writes":       float64(0),
+		"mysql.innodb.pending_aio_log_ios":         float64(0),
+		"mysql.innodb.pending_aio_sync_ios":        float64(0),
+		"mysql.innodb.pending_buffer_pool_flushes": float64(0),
+		"mysql.innodb.pending_checkpoint_writes":   float64(0),
+		"mysql.innodb.pending_ibuf_aio_reads":      float64(0),
+		"mysql.innodb.pending_log_flushes":         float64(0),
+		"mysql.innodb.pending_log_writes":          float64(0),
+		"mysql.innodb.pending_normal_aio_reads":    float64(0),
+		"mysql.innodb.pending_normal_aio_writes":   float64(0),
+		"mysql.innodb.queries_inside":              float64(0),
+		"mysql.innodb.queries_queued":              float64(0),
+		"mysql.innodb.read_views":                  float64(1),
+		"mysql.innodb.row_lock_current_waits":      float64(0),
+		"mysql.myisam.key_buffer_bytes_unflushed":  float64(0),
+		"mysql.myisam.key_buffer_bytes_used":       float64(0),
+		"mysql.myisam.key_buffer_size":             float64(16777216),
+		"mysql.net.max_connections":                float64(3),
+		"mysql.net.max_connections_available":      float64(151),
+		"mysql.performance.key_cache_utilization":  float64(1 - (float64(13396*1024) / float64(16777216))),
+		"mysql.performance.open_files":             float64(48),
+		"mysql.performance.open_tables":            float64(63),
+		// "mysql.performance.qcache.utilization":      float64(0),
+		"mysql.performance.qcache_free_blocks":      float64(1),
+		"mysql.performance.qcache_free_memory":      float64(16759696),
+		"mysql.performance.qcache_queries_in_cache": float64(0),
+		"mysql.performance.qcache_size":             float64(16777216),
+		"mysql.performance.qcache_total_blocks":     float64(1),
+		"mysql.performance.table_locks_immediate":   float64(62),
+		"mysql.performance.table_locks_waited":      float64(0),
+		"mysql.performance.table_open_cache":        float64(400),
+		"mysql.performance.thread_cache_size":       float64(8),
+		"mysql.performance.threads_cached":          float64(1),
+		"mysql.performance.threads_connected":       float64(1),
+		"mysql.performance.threads_running":         float64(1),
+		// "mysql.replication.slave_running":           float64(0),
+	}
+	for name, value := range fields {
+		testutil.AssertContainsMetricWithTags(t, metrics, name, value, nil)
+	}
+
+	tags := []string{"schema:information_schema"}
+	testutil.AssertContainsMetricWithTags(t, metrics, "mysql.info.schema.size", 0.00878906, tags)
+
+	// we make sure that all expectations were met
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expections: %s", err)
+	}
+}
+
+func TestParseInnodbStatus55(t *testing.T) {
 	stat := make(map[string]float64)
 
-	err := parseInnodbStatus(stub, &stat)
+	err := parseInnodbStatus(stubInnodbStatus55, &stat)
+	assert.NoError(t, err)
+	// Innodb Semaphores
+	assert.EqualValues(t, stat["Innodb_mutex_spin_waits"], 2)
+	assert.EqualValues(t, stat["Innodb_mutex_spin_rounds"], 31)
+	assert.EqualValues(t, stat["Innodb_mutex_os_waits"], 1)
+	assert.EqualValues(t, stat["Innodb_semaphore_waits"], 0)  // empty
+	assert.EqualValues(t, stat["Innodb_mutex_spin_waits"], 2) // empty
+	// Innodb Transactions
+	assert.EqualValues(t, stat["Innodb_history_list_length"], 324)
+	assert.EqualValues(t, stat["Innodb_current_transactions"], 1)
+	assert.EqualValues(t, stat["Innodb_active_transactions"], 0)
+	assert.EqualValues(t, stat["Innodb_row_lock_time"], 0) // empty
+	assert.EqualValues(t, stat["Innodb_read_views"], 1)
+	assert.EqualValues(t, stat["Innodb_tables_in_use"], 0)       // empty
+	assert.EqualValues(t, stat["Innodb_locked_tables"], 0)       // empty
+	assert.EqualValues(t, stat["Innodb_lock_structs"], 0)        // empty
+	assert.EqualValues(t, stat["Innodb_locked_transactions"], 0) // empty
+	// File I/O
+	assert.EqualValues(t, stat["Innodb_os_file_reads"], 454)
+	assert.EqualValues(t, stat["Innodb_os_file_writes"], 3)
+	assert.EqualValues(t, stat["Innodb_os_file_fsyncs"], 3)
+	assert.EqualValues(t, stat["Innodb_pending_normal_aio_reads"], 0)
+	assert.EqualValues(t, stat["Innodb_pending_normal_aio_writes"], 0)
+	assert.EqualValues(t, stat["Innodb_pending_ibuf_aio_reads"], 0)
+	assert.EqualValues(t, stat["Innodb_pending_aio_log_ios"], 0)
+	assert.EqualValues(t, stat["Innodb_pending_aio_sync_ios"], 0)
+	assert.EqualValues(t, stat["Innodb_pending_log_flushes"], 0)
+	assert.EqualValues(t, stat["Innodb_pending_buf_pool_flushes"], 0)
+	// Insert Buffer and Adaptive Hash Index
+	assert.EqualValues(t, stat["Innodb_ibuf_size"], 1)
+	assert.EqualValues(t, stat["Innodb_ibuf_free_list"], 0)
+	assert.EqualValues(t, stat["Innodb_ibuf_segment_size"], 2)
+	assert.EqualValues(t, stat["Innodb_ibuf_merged_inserts"], 0)
+	assert.EqualValues(t, stat["Innodb_ibuf_merged_delete_marks"], 0)
+	assert.EqualValues(t, stat["Innodb_ibuf_merged_deletes"], 0)
+	assert.EqualValues(t, stat["Innodb_hash_index_cells_total"], 276707)
+	assert.EqualValues(t, stat["Innodb_hash_index_cells_used"], 0)
+	// Log
+	assert.EqualValues(t, stat["Innodb_log_writes"], 8)
+	assert.EqualValues(t, stat["Innodb_pending_log_writes"], 0)
+	assert.EqualValues(t, stat["Innodb_pending_checkpoint_writes"], 0)
+	assert.EqualValues(t, stat["Innodb_lsn_current"], 2744156)
+	assert.EqualValues(t, stat["Innodb_lsn_flushed"], 2744156)
+	assert.EqualValues(t, stat["Innodb_lsn_last_checkpoint"], 2744156)
+	// Buffer Pool and Memory
+	assert.EqualValues(t, stat["Innodb_mem_total"], 137363456)
+	assert.EqualValues(t, stat["Innodb_mem_additional_pool"], 0)
+	assert.EqualValues(t, stat["Innodb_mem_adaptive_hash"], 0)   // empty
+	assert.EqualValues(t, stat["Innodb_mem_page_hash"], 0)       // empty
+	assert.EqualValues(t, stat["Innodb_mem_dictionary"], 0)      // empty
+	assert.EqualValues(t, stat["Innodb_mem_file_system"], 0)     // empty
+	assert.EqualValues(t, stat["Innodb_mem_lock_system"], 0)     // empty
+	assert.EqualValues(t, stat["Innodb_mem_recovery_system"], 0) // empty
+	assert.EqualValues(t, stat["Innodb_mem_thread_hash"], 0)     // empty
+	assert.EqualValues(t, stat["Innodb_buffer_pool_pages_total"], 8192)
+	assert.EqualValues(t, stat["Innodb_buffer_pool_pages_free"], 7749)
+	assert.EqualValues(t, stat["Innodb_buffer_pool_pages_data"], 443)
+	assert.EqualValues(t, stat["Innodb_buffer_pool_pages_dirty"], 0)
+	assert.EqualValues(t, stat["Innodb_buffer_pool_read_ahead"], 0)
+	assert.EqualValues(t, stat["Innodb_buffer_pool_read_ahead_evicted"], 0)
+	assert.EqualValues(t, stat["Innodb_buffer_pool_read_ahead_rnd"], 0)
+	assert.EqualValues(t, stat["Innodb_pages_read"], 443)
+	assert.EqualValues(t, stat["Innodb_pages_created"], 0.00)
+	assert.EqualValues(t, stat["Innodb_pages_written"], 0.00)
+	// Row Operations
+	assert.EqualValues(t, stat["Innodb_rows_inserted"], 0)
+	assert.EqualValues(t, stat["Innodb_rows_updated"], 0)
+	assert.EqualValues(t, stat["Innodb_rows_deleted"], 0)
+	assert.EqualValues(t, stat["Innodb_rows_read"], 0)
+	assert.EqualValues(t, stat["Innodb_queries_inside"], 0)
+	assert.EqualValues(t, stat["Innodb_queries_queued"], 0)
+	// etc
+	assert.EqualValues(t, stat["Innodb_checkpoint_age"], 0)
+}
+
+func TestParseInnodbStatus56(t *testing.T) {
+	stat := make(map[string]float64)
+
+	err := parseInnodbStatus(stubInnodbStatus56, &stat)
 	assert.NoError(t, err)
 	// Innodb Semaphores
 	assert.EqualValues(t, stat["Innodb_mutex_spin_waits"], 287)
