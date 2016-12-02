@@ -485,6 +485,7 @@ func (m *MySQL) collectGlobalStatus(db *sql.DB, fields map[string]float64) error
 	if err != nil {
 		return err
 	}
+	defer rows.Close()
 
 	var key string
 	var val sql.RawBytes
