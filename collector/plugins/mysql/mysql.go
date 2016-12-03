@@ -67,14 +67,9 @@ const (
 	`
 )
 
-type metricField struct {
-	name  string
-	mtype string
-}
-
 var (
 	// Vars found in "SHOW STATUS;"
-	statusVars = map[string]metricField{
+	statusVars = map[string]metric.Field{
 		// Command Metrics
 		"Slow_queries":       {"mysql.performance.slow_queries", rate},
 		"Questions":          {"mysql.performance.questions", rate},
@@ -124,7 +119,7 @@ var (
 	}
 
 	// Possibly from "SHOW GLOBAL VARIABLES;"
-	variablesVars = map[string]metricField{
+	variablesVars = map[string]metric.Field{
 		"Key_buffer_size":       {"mysql.myisam.key_buffer_size", gauge},
 		"Key_cache_utilization": {"mysql.performance.key_cache_utilization", gauge},
 		"max_connections":       {"mysql.net.max_connections_available", gauge},
@@ -134,7 +129,7 @@ var (
 	}
 
 	// Vars found in "SHOW /*!50000 ENGINE*/ INNODB STATUS;"
-	innodbVars = map[string]metricField{
+	innodbVars = map[string]metric.Field{
 		// InnoDB metrics
 		"Innodb_data_reads":                    {"mysql.innodb.data_reads", rate},
 		"Innodb_data_writes":                   {"mysql.innodb.data_writes", rate},
@@ -156,13 +151,13 @@ var (
 	}
 
 	// Calculated from "SHOW MASTER LOGS;"
-	binlogVars = map[string]metricField{
+	binlogVars = map[string]metric.Field{
 		"Binlog_space_usage_bytes": {"mysql.binlog.disk_use", gauge},
 	}
 
 	// Additional Vars found in "SHOW STATUS;"
 	// Will collect if [FLAG NAME] is True
-	optionalStatusVars = map[string]metricField{
+	optionalStatusVars = map[string]metric.Field{
 		"Binlog_cache_disk_use":      {"mysql.binlog.cache_disk_use", gauge},
 		"Binlog_cache_use":           {"mysql.binlog.cache_use", gauge},
 		"Handler_commit":             {"mysql.performance.handler_commit", rate},
@@ -199,13 +194,13 @@ var (
 	}
 
 	// Status Vars added in Mysql 5.6.6
-	optionalStatusVars5_6_6 = map[string]metricField{
+	optionalStatusVars5_6_6 = map[string]metric.Field{
 		"Table_open_cache_hits":   {"mysql.performance.table_cache_hits", rate},
 		"Table_open_cache_misses": {"mysql.performance.table_cache_misses", rate},
 	}
 
 	// Will collect if [extra_innodb_metrics] is True
-	optionalInnodbVars = map[string]metricField{
+	optionalInnodbVars = map[string]metric.Field{
 		"Innodb_active_transactions":            {"mysql.innodb.active_transactions", gauge},
 		"Innodb_buffer_pool_bytes_data":         {"mysql.innodb.buffer_pool_data", gauge},
 		"Innodb_buffer_pool_pages_data":         {"mysql.innodb.buffer_pool_pages_data", gauge},
@@ -293,7 +288,7 @@ var (
 		"Innodb_x_lock_spin_waits":              {"mysql.innodb.x_lock_spin_waits", rate},
 	}
 
-	galeraVars = map[string]metricField{
+	galeraVars = map[string]metric.Field{
 		"wsrep_cluster_size":         {"mysql.galera.wsrep_cluster_size", gauge},
 		"wsrep_local_recv_queue_avg": {"mysql.galera.wsrep_local_recv_queue_avg", gauge},
 		"wsrep_flow_control_paused":  {"mysql.galera.wsrep_flow_control_paused", gauge},
@@ -301,21 +296,21 @@ var (
 		"wsrep_local_send_queue_avg": {"mysql.galera.wsrep_local_send_queue_avg", gauge},
 	}
 
-	performanceVars = map[string]metricField{
+	performanceVars = map[string]metric.Field{
 		"query_run_time_avg":                 {"mysql.performance.query_run_time.avg", gauge},
 		"perf_digest_95th_percentile_avg_us": {"mysql.performance.digest_95th_percentile.avg_us", gauge},
 	}
 
-	schemaVars = map[string]metricField{
+	schemaVars = map[string]metric.Field{
 		"information_schema_size": {"mysql.info.schema.size", gauge},
 	}
 
-	replicaVars = map[string]metricField{
+	replicaVars = map[string]metric.Field{
 		"Seconds_Behind_Master": {"mysql.replication.seconds_behind_master", gauge},
 		"Slaves_connected":      {"mysql.replication.slaves_connected", count},
 	}
 
-	syntheticVars = map[string]metricField{
+	syntheticVars = map[string]metric.Field{
 		"Qcache_utilization":         {"mysql.performance.qcache.utilization", gauge},
 		"Qcache_instant_utilization": {"mysql.performance.qcache.utilization.instant", gauge},
 	}
@@ -390,7 +385,7 @@ func (m *MySQL) collectMetrics(db *sql.DB, agg metric.Aggregator) error {
 
 		if m.Options.ExtraInnodbMetrics {
 			log.Debug("Collecting Extra Innodb Metrics")
-			updateMap(metrics, optionalInnodbVars)
+			metric.UpdateMap(metrics, optionalInnodbVars)
 		}
 	}
 
@@ -424,31 +419,31 @@ func (m *MySQL) collectMetrics(db *sql.DB, agg metric.Aggregator) error {
 		fields["Key_cache_utilization"] = 1 - ((keyBlocksUnused * keyCacheBlockSize) / keyBufferSize)
 	}
 
-	updateMap(metrics, variablesVars)
-	updateMap(metrics, innodbVars)
+	metric.UpdateMap(metrics, variablesVars)
+	metric.UpdateMap(metrics, innodbVars)
 
 	if m.logBinEnabled {
 		err = m.collectBinaryLogs(db, fields)
 		if err != nil {
 			return err
 		}
-		updateMap(metrics, binlogVars)
+		metric.UpdateMap(metrics, binlogVars)
 	}
 
 	if m.Options.ExtraStatusMetrics {
 		log.Debug("Collecting Extra Status Metrics")
-		updateMap(metrics, optionalStatusVars)
-		updateMap(metrics, optionalStatusVars5_6_6)
+		metric.UpdateMap(metrics, optionalStatusVars)
+		metric.UpdateMap(metrics, optionalStatusVars5_6_6)
 	}
 	if m.Options.GaleraCluster {
 		// already in result-set after 'SHOW STATUS' just add vars to collect
 		log.Debug("Collecting Galera Metrics.")
-		updateMap(metrics, galeraVars)
+		metric.UpdateMap(metrics, galeraVars)
 	}
 	if m.Options.ExtraPerformanceMetrics && m.performanceSchemaEnabled {
 		log.Debug("Collecting Extra Performance Metrics.")
 		// TODO
-		updateMap(metrics, performanceVars)
+		metric.UpdateMap(metrics, performanceVars)
 	}
 	if m.Options.SchemaSizeMetrics {
 		log.Debug("Collecting Schema Size Metrics.")
@@ -460,7 +455,7 @@ func (m *MySQL) collectMetrics(db *sql.DB, agg metric.Aggregator) error {
 	if m.Options.Replication {
 		log.Debug("Collecting Replication Metrics.")
 		// TODO
-		updateMap(metrics, replicaVars)
+		metric.UpdateMap(metrics, replicaVars)
 	}
 
 	m.submitMetrics(fields, metrics, agg)
@@ -468,10 +463,10 @@ func (m *MySQL) collectMetrics(db *sql.DB, agg metric.Aggregator) error {
 	return nil
 }
 
-func (m *MySQL) submitMetrics(fields map[string]float64, metrics map[string]metricField, agg metric.Aggregator) {
+func (m *MySQL) submitMetrics(fields map[string]float64, metrics map[string]metric.Field, agg metric.Aggregator) {
 	for key, value := range fields {
 		if field, ok := metrics[key]; ok {
-			agg.Add(field.mtype, metric.NewMetric(field.name, value, m.Tags))
+			agg.Add(field.Type, metric.NewMetric(field.Name, value, m.Tags))
 		}
 	}
 }
@@ -614,7 +609,7 @@ func (m *MySQL) collectTableSchema(db *sql.DB, agg metric.Aggregator) error {
 
 		tags := []string{"schema:" + tableSchema}
 		if field, ok := schemaVars["information_schema_size"]; ok {
-			agg.Add(field.mtype, metric.NewMetric(field.name, size, tags))
+			agg.Add(field.Type, metric.NewMetric(field.Name, size, tags))
 		}
 	}
 
@@ -1052,12 +1047,6 @@ func atof(str string) float64 {
 		val = 0
 	}
 	return val
-}
-
-func updateMap(dst, src map[string]metricField) {
-	for k, v := range src {
-		dst[k] = v
-	}
 }
 
 func increaseMap(p *map[string]float64, key string, src string) {

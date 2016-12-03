@@ -27,6 +27,12 @@ type Metric struct {
 	Formatter      Formatter
 }
 
+// Field XXX
+type Field struct {
+	Name string
+	Type string
+}
+
 // NewMetric creates a new instance of Metric.
 func NewMetric(name string, value interface{}, tags ...[]string) Metric {
 	if value == nil {
@@ -105,4 +111,11 @@ func (m Metric) Format() interface{} {
 		return m.Formatter(m)
 	}
 	return m
+}
+
+// UpdateMap XXX
+func UpdateMap(dst, src map[string]Field) {
+	for k, v := range src {
+		dst[k] = v
+	}
 }
