@@ -7,5 +7,6 @@ import (
 	_ "github.com/cloudinsight/cloudinsight-agent/collector/plugins/mysql"
 	_ "github.com/cloudinsight/cloudinsight-agent/collector/plugins/nginx"
 	_ "github.com/cloudinsight/cloudinsight-agent/collector/plugins/phpfpm"
+	_ "github.com/cloudinsight/cloudinsight-agent/collector/plugins/postgres"
 	_ "github.com/cloudinsight/cloudinsight-agent/collector/plugins/system"
 )

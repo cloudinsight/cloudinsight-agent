@@ -1,0 +1,46 @@
+init_config:
+
+instances:
+  -
+    # specify address via a url matching:
+    #   postgres://[pqgotest[:password]]@localhost[/dbname]\
+    #       ?sslmode=[disable|verify-ca|verify-full]
+    # or a simple string:
+    #   host=localhost user=pqotest password=... sslmode=... dbname=app_production
+    address: "host=localhost user=postgres sslmode=disable"
+
+    ## Custom tags
+    # tags: ["tag_key1:tag_value1", "tag_key2:tag_value2"]
+
+    ## Track per-relation (table) metrics
+    ## The list of relations/tables must be specified here.
+    ## Each relation generates many metrics (10 + 10 per index)
+    # relations:
+    #   - relation_name: my_table
+    #     schemas: []
+    #   - relation_name: my_other_table
+    #     schemas:
+    #       - public
+    #       - prod
+
+    ## Custom metrics
+    ## Below are some examples of commonly used metrics, which are implemented as custom metrics.
+    ## Uncomment them if you want to use them as is, or use as an example for creating your own custom metrics.
+    # custom_metrics:
+    #   -
+    #     # Londiste 3 replication lag
+    #     descriptors:
+    #       - name: name
+    #         alias: alias
+    #     metrics:
+    #       GREATEST(0, EXTRACT(EPOCH FROM lag)) as lag:
+    #         name: postgresql.londiste_lag
+    #         type: gauge
+    #       GREATEST(0, EXTRACT(EPOCH FROM lag)) as last_seen:
+    #         name: postgresql.londiste_last_seen
+    #         type: gauge
+    #       pending_events:
+    #         name: postgresql.londiste_pending_events
+    #         type: gauge
+    #     query: SELECT consumer_name, %s from pgq.get_consumer_info() where consumer_name !~ 'watermark$';
+    #     relation: false

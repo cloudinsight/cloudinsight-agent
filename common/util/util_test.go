@@ -147,3 +147,20 @@ func TestFillStructWithComplexType(t *testing.T) {
 	assert.True(t, result.Options.Replication)
 	assert.False(t, result.Options.GaleraCluster)
 }
+
+func TestStringInSlice(t *testing.T) {
+	for _, c := range []struct {
+		in1  string
+		in2  []string
+		want bool
+	}{
+		{"Hello", []string{"Hello", "World"}, true},
+		{"World", []string{"Hello", "World"}, true},
+		{"Hi", []string{"Hello", "World"}, false},
+	} {
+		out := StringInSlice(c.in1, c.in2)
+		if out != c.want {
+			t.Errorf("Contains(%s, %v) == %t, want %t", c.in1, c.in2, out, c.want)
+		}
+	}
+}
