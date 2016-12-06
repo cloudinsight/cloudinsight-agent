@@ -80,7 +80,8 @@ func TestCollectMetrics(t *testing.T) {
 	mock.ExpectQuery("^SELECT datname, (.+) FROM pg_stat_database WHERE datname='exampledb'(.+)$").WillReturnRows(customStatResult)
 
 	p := &Postgres{
-		Tags: []string{"service:postgres"},
+		Address: "host=localhost sslmode=disable",
+		Tags:    []string{"service:postgres"},
 		Relations: []relationConfig{
 			{
 				RelationName: "my_table",
@@ -112,6 +113,8 @@ func TestCollectMetrics(t *testing.T) {
 	defer close(metricC)
 	agg := testutil.MockAggregator(metricC)
 
+	err = p.formatAddress()
+	require.NoError(t, err)
 	err = p.collectMetrics(db, agg)
 	require.NoError(t, err)
 	agg.Flush()
@@ -138,7 +141,7 @@ func TestCollectMetrics(t *testing.T) {
 		"postgresql.live_rows": float64(2),
 		"postgresql.dead_rows": float64(0),
 	}
-	tags = []string{"service:postgres", "table:persons", "schema:public"}
+	tags = []string{"service:postgres", "server:host=localhost sslmode=disable", "table:persons", "schema:public"}
 	for name, value := range fields {
 		testutil.AssertContainsMetricWithTags(t, metrics, name, value, tags)
 	}
@@ -149,7 +152,7 @@ func TestCollectMetrics(t *testing.T) {
 		"postgresql.index_size": float64(0),
 		"postgresql.total_size": float64(16384),
 	}
-	tags = []string{"service:postgres", "table:persons"}
+	tags = []string{"service:postgres", "server:host=localhost sslmode=disable", "table:persons"}
 	for name, value := range fields {
 		testutil.AssertContainsMetricWithTags(t, metrics, name, value, tags)
 	}
@@ -186,10 +189,10 @@ func TestFormatAddress(t *testing.T) {
 	p := &Postgres{
 		Address: "postgres://postgres:postgres@localhost/postgres?sslmode=disable",
 	}
-	addr, err := p.formatAddress()
+	err := p.formatAddress()
 	assert.NoError(t, err)
 	expectedAddr := "dbname=postgres host=localhost sslmode=disable user=postgres"
-	assert.Equal(t, expectedAddr, addr)
+	assert.Equal(t, expectedAddr, p.formattedAddress)
 }
 
 func TestGetMapKeys(t *testing.T) {

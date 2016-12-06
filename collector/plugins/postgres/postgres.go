@@ -331,11 +331,10 @@ func (p *Postgres) Check(agg metric.Aggregator) error {
 		p.Address = localhost
 	}
 
-	tagAddress, err := p.formatAddress()
+	err := p.formatAddress()
 	if err != nil {
 		return err
 	}
-	p.Tags = append(p.Tags, "server:"+tagAddress)
 
 	db, err := sql.Open("postgres", p.Address)
 	if err != nil {
@@ -531,13 +530,9 @@ func (p *Postgres) collectStats(
 
 		var tags []string
 		if relation {
-			tags = p.Tags
+			tags = append(p.Tags, "server:"+p.formattedAddress)
 		} else {
-			for _, tag := range p.Tags {
-				if !strings.HasPrefix(tag, "db:") {
-					tags = append(tags, tag)
-				}
-			}
+			tags = p.Tags
 		}
 
 		descMap := make(map[string]string, len(desc))
@@ -553,16 +548,18 @@ func (p *Postgres) collectStats(
 					tag := desc[i]
 
 					if tag.Name == col {
+						var tagV string
 						switch v := val.(type) {
 						case string:
-							tags = append(tags, tag.Alias+":"+v)
+							tagV = v
+						case []uint8:
+							tagV = string(val.([]uint8))
+						}
+
+						if tagV != "" {
+							tags = append(tags, tag.Alias+":"+tagV)
 							if util.StringInSlice(tag.Name, []string{"relname", "schemaname"}) {
-								descMap[tag.Alias] = v
-							}
-						case sql.RawBytes:
-							tags = append(tags, tag.Alias+":"+string(v))
-							if util.StringInSlice(tag.Name, []string{"relname", "schemaname"}) {
-								descMap[tag.Alias] = string(v)
+								descMap[tag.Alias] = tagV
 							}
 						}
 					}
@@ -607,20 +604,20 @@ func (p *Postgres) collectStats(
 
 var passwordKVMatcher, _ = regexp.Compile("password=\\S+ ?")
 
-func (p *Postgres) formatAddress() (string, error) {
+func (p *Postgres) formatAddress() error {
 	var addr string
 	var err error
 	if strings.HasPrefix(p.Address, "postgres://") || strings.HasPrefix(p.Address, "postgresql://") {
 		addr, err = pq.ParseURL(p.Address)
 		if err != nil {
-			return p.formattedAddress, err
+			return err
 		}
 	} else {
 		addr = p.Address
 	}
 	p.formattedAddress = passwordKVMatcher.ReplaceAllString(addr, "")
 
-	return p.formattedAddress, nil
+	return nil
 }
 
 func getMapKeys(metrics map[string]metric.Field) []string {
