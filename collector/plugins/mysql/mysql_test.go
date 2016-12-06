@@ -367,7 +367,7 @@ func TestCollectMetrics(t *testing.T) {
 	require.NoError(t, err)
 	agg.Flush()
 	expectedMetrics := 68
-	assert.Len(t, metricC, expectedMetrics)
+	require.Len(t, metricC, expectedMetrics)
 
 	metrics := make([]metric.Metric, expectedMetrics)
 	for i := 0; i < expectedMetrics; i++ {

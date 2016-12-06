@@ -30,8 +30,8 @@ instances:
     #   -
     #     # Londiste 3 replication lag
     #     descriptors:
-    #       - name: name
-    #         alias: alias
+    #       - name: consumer_name
+    #         alias: consumer_name
     #     metrics:
     #       GREATEST(0, EXTRACT(EPOCH FROM lag)) as lag:
     #         name: postgresql.londiste_lag

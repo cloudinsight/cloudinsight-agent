@@ -3,6 +3,7 @@ package postgres
 import (
 	"database/sql"
 	"fmt"
+	"reflect"
 	"regexp"
 	"strings"
 
@@ -36,7 +37,8 @@ const (
 	rate      = "rate"
 	monotonic = "monotoniccount"
 
-	versionQuery = `SHOW SERVER_VERSION`
+	versionQuery     = `SHOW SERVER_VERSION`
+	maxCustomResults = 100
 )
 
 type tagField struct {
@@ -87,7 +89,7 @@ SELECT datname,
 		"tup_inserted":                                  {"postgresql.rows_inserted", rate},
 		"tup_updated":                                   {"postgresql.rows_updated", rate},
 		"tup_deleted":                                   {"postgresql.rows_deleted", rate},
-		"pg_database_size(datname) as pg_database_size": {"postgresql.database_size", gauge},
+		"pg_database_size(datname) AS pg_database_size": {"postgresql.database_size", gauge},
 	}
 
 	newer92Metrics = map[string]metric.Field{
@@ -173,9 +175,9 @@ SELECT mode,
 			"n_dead_tup":    {"postgresql.dead_rows", gauge},
 		},
 		Query: `
-SELECT relname,schemaname,%s
+SELECT relname, schemaname, %s
   FROM pg_stat_user_tables
- WHERE relname = ANY(%s)
+ WHERE relname = ANY($1)
 `,
 		Relation: true,
 	}
@@ -206,7 +208,7 @@ SELECT relname,
        indexrelname,
        %s
   FROM pg_stat_user_indexes
- WHERE relname = ANY(%s)
+ WHERE relname = ANY($1)
 `,
 		Relation: true,
 	}
@@ -232,7 +234,7 @@ SELECT relname,
  WHERE nspname NOT IN ('pg_catalog', 'information_schema') AND
   nspname !~ '^pg_toast' AND
   relkind IN ('r') AND
-  relname = ANY(%s)
+  relname = ANY($1)
 `,
 	}
 
@@ -244,12 +246,12 @@ SELECT relname,
 			},
 		},
 		Metrics: map[string]metric.Field{
-			"pg_stat_user_tables": {"postgresql.table.count", gauge},
+			"table_count": {"postgresql.table.count", gauge},
 		},
 		Relation: false,
 		Query: `
-SELECT schemaname, count(*)
-  FROM %s
+SELECT schemaname, count(*) AS %s
+  FROM pg_stat_user_tables
  GROUP BY schemaname
 `,
 	}
@@ -315,7 +317,7 @@ SELECT relname,
        schemaname,
        %s
   FROM pg_statio_user_tables
- WHERE relname = ANY(%s)
+ WHERE relname = ANY($1)
 `,
 		Relation: true,
 	}
@@ -362,21 +364,18 @@ func (p *Postgres) collectMetrics(db *sql.DB, agg metric.Aggregator) error {
 	var fullMetricSchemas []metricSchema
 	var err error
 
-	metrics := p.getDBMetrics()
 	if len(dbMetrics.Metrics) == 0 {
-		metric.UpdateMap(dbMetrics.Metrics, metrics)
+		p.updateDBMetrics()
 	}
 	fullMetricSchemas = append(fullMetricSchemas, dbMetrics)
 
-	metrics = p.getBGWMetrics()
 	if len(bgwMetrics.Metrics) == 0 {
-		metric.UpdateMap(bgwMetrics.Metrics, metrics)
+		p.updateBGWMetrics()
 	}
 	fullMetricSchemas = append(fullMetricSchemas, bgwMetrics)
 
-	metrics = p.getReplMetrics()
 	if len(replicationMetrics.Metrics) == 0 {
-		metric.UpdateMap(replicationMetrics.Metrics, metrics)
+		p.updateReplMetrics()
 	}
 	fullMetricSchemas = append(fullMetricSchemas, replicationMetrics)
 
@@ -392,7 +391,7 @@ func (p *Postgres) collectMetrics(db *sql.DB, agg metric.Aggregator) error {
 	}
 
 	for _, ms := range fullMetricSchemas {
-		err = p.collectStats(ms, db, agg)
+		err = p.collectStats(ms, db, agg, false)
 		if err != nil {
 			return err
 		}
@@ -426,39 +425,30 @@ func (p *Postgres) getVersion(db *sql.DB) (string, error) {
 	return version, nil
 }
 
-func (p *Postgres) getDBMetrics() map[string]metric.Field {
-	metrics := dbMetrics.Metrics
-	metric.UpdateMap(metrics, commonMetrics)
+func (p *Postgres) updateDBMetrics() {
+	metric.UpdateMap(dbMetrics.Metrics, commonMetrics)
 	if p.version >= "9.2.0" {
-		metric.UpdateMap(metrics, newer92Metrics)
+		metric.UpdateMap(dbMetrics.Metrics, newer92Metrics)
 	}
-
-	return metrics
 }
 
-func (p *Postgres) getBGWMetrics() map[string]metric.Field {
-	metrics := bgwMetrics.Metrics
-	metric.UpdateMap(metrics, commonBGWMetrics)
+func (p *Postgres) updateBGWMetrics() {
+	metric.UpdateMap(bgwMetrics.Metrics, commonBGWMetrics)
 	if p.version >= "9.1.0" {
-		metric.UpdateMap(metrics, newer91BGWMetrics)
+		metric.UpdateMap(bgwMetrics.Metrics, newer91BGWMetrics)
 	}
 	if p.version >= "9.2.0" {
-		metric.UpdateMap(metrics, newer92BGWMetrics)
+		metric.UpdateMap(bgwMetrics.Metrics, newer92BGWMetrics)
 	}
-
-	return metrics
 }
 
-func (p *Postgres) getReplMetrics() map[string]metric.Field {
-	metrics := replicationMetrics.Metrics
+func (p *Postgres) updateReplMetrics() {
 	if p.version >= "9.1.0" {
-		metric.UpdateMap(metrics, replicationMetrics91)
+		metric.UpdateMap(replicationMetrics.Metrics, replicationMetrics91)
 	}
 	if p.version >= "9.2.0" {
-		metric.UpdateMap(metrics, replicationMetrics92)
+		metric.UpdateMap(replicationMetrics.Metrics, replicationMetrics92)
 	}
-
-	return metrics
 }
 
 func (p *Postgres) collectCustomMetrics(db *sql.DB, agg metric.Aggregator) error {
@@ -470,7 +460,7 @@ func (p *Postgres) collectCustomMetrics(db *sql.DB, agg metric.Aggregator) error
 			}
 		}
 
-		err := p.collectStats(ms, db, agg)
+		err := p.collectStats(ms, db, agg, true)
 		if err != nil {
 			return err
 		}
@@ -483,6 +473,7 @@ func (p *Postgres) collectStats(
 	ms metricSchema,
 	db *sql.DB,
 	agg metric.Aggregator,
+	isCustom bool,
 ) error {
 	metrics := ms.Metrics
 	relation := ms.Relation
@@ -493,14 +484,18 @@ func (p *Postgres) collectStats(
 	var rows *sql.Rows
 	var err error
 	if ms.Relation && p.Relations != nil {
-		var relations []string
+		var relnames []string
 		for _, relation := range p.Relations {
-			relations = append(relations, relation.RelationName)
+			relnames = append(relnames, relation.RelationName)
 		}
-		rows, err = db.Query(query, pq.Array(relations))
+
+		log.Debugf("Running query: %s with relations: %s", query, relnames)
+		rows, err = db.Query(query, pq.Array(relnames))
 	} else {
+		log.Debugf("Running query: %s", query)
 		rows, err = db.Query(query)
 	}
+
 	if err != nil {
 		log.Errorf("Failed to execute query. %s", query)
 		return err
@@ -520,7 +515,13 @@ func (p *Postgres) collectStats(
 	}
 	asMetrics := getMetricsWithAsCondition(metrics)
 
+	rowsCount := 0
 	for rows.Next() {
+		rowsCount++
+		if isCustom && rowsCount > maxCustomResults {
+			log.Warnf("Query: %s returned more than %d results. Truncating", query, maxCustomResults)
+			return nil
+		}
 		// deconstruct array of variables and send to Scan
 		err := rows.Scan(valuePtrs...)
 		if err != nil {
@@ -539,9 +540,13 @@ func (p *Postgres) collectStats(
 			}
 		}
 
-		var descMap map[string]string
+		descMap := make(map[string]string, len(desc))
 		for i, col := range columns {
 			val := values[i]
+			if val == nil {
+				continue
+			}
+
 			switch col {
 			default:
 				if i < len(desc) {
@@ -564,19 +569,18 @@ func (p *Postgres) collectStats(
 				} else {
 					if relation && p.Relations != nil {
 						if s, ok := descMap["schema"]; ok {
-							var schemaNotFound bool
+							var schemaNotMatch bool
 
 							if t, ok := descMap["table"]; ok {
 								for _, relation := range p.Relations {
 									if relation.RelationName == t && relation.Schemas != nil &&
 										!util.StringInSlice(s, relation.Schemas) {
-										schemaNotFound = true
+										schemaNotMatch = true
 									}
 								}
 							}
 
-							if schemaNotFound {
-								fmt.Printf("Schema %s not found.", s)
+							if schemaNotMatch {
 								break
 							}
 						}
@@ -592,6 +596,10 @@ func (p *Postgres) collectStats(
 				}
 			}
 		}
+	}
+
+	if reflect.DeepEqual(ms, dbMetrics) {
+		agg.Add("gauge", metric.NewMetric("postgresql.db.count", rowsCount, p.Tags))
 	}
 
 	return nil
@@ -626,8 +634,9 @@ func getMapKeys(metrics map[string]metric.Field) []string {
 func getMetricsWithAsCondition(metrics map[string]metric.Field) map[string]metric.Field {
 	m := make(map[string]metric.Field)
 	for k, v := range metrics {
-		if strings.Contains(k, " as ") {
-			key := strings.SplitN(k, " as ", 2)[1]
+		if strings.Contains(k, " as ") || strings.Contains(k, " AS ") {
+			k = strings.Replace(k, " as ", " AS ", -1)
+			key := strings.SplitN(k, " AS ", 2)[1]
 			m[key] = v
 		}
 	}

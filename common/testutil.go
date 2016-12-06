@@ -43,7 +43,7 @@ func AssertCheckWithMetrics(
 	err := checker(agg)
 	require.NoError(t, err)
 	agg.Flush()
-	assert.Len(t, metricC, expectedMetrics)
+	require.Len(t, metricC, expectedMetrics)
 
 	metrics := make([]metric.Metric, expectedMetrics)
 	for i := 0; i < expectedMetrics; i++ {
@@ -78,7 +78,7 @@ func AssertCheckWithRateMetrics(
 	err = checker2(agg)
 	require.NoError(t, err)
 	agg.Flush()
-	assert.Len(t, metricC, expectedMetrics)
+	require.Len(t, metricC, expectedMetrics)
 
 	metrics := make([]metric.Metric, expectedMetrics)
 	for i := 0; i < expectedMetrics; i++ {
@@ -103,7 +103,7 @@ func AssertCheckWithLen(
 	err := checker(agg)
 	require.NoError(t, err)
 	agg.Flush()
-	assert.Len(t, metricC, expectedMetrics)
+	require.Len(t, metricC, expectedMetrics)
 }
 
 // AssertContainsMetricWithTags XXX
