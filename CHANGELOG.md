@@ -1,5 +1,12 @@
 # Change Log
 
+## [v0.3.0](https://github.com/cloudinsight/cloudinsight-agent/tree/v0.3.0) (2016-12-06)
+
+### Features
+- 支持 PHP-FPM
+- 支持 MySQL
+- 支持 PostgreSQL
+
 ## [v0.2.0](https://github.com/cloudinsight/cloudinsight-agent/tree/v0.2.0) (2016-11-14)
 
 ### Features
