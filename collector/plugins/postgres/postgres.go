@@ -349,7 +349,7 @@ func (p *Postgres) Check(agg metric.Aggregator) error {
 			return err
 		}
 	}
-	log.Debug("Running check against version %s", p.version)
+	log.Debugf("Running check against version %s", p.version)
 
 	err = p.collectMetrics(db, agg)
 	if err != nil {
