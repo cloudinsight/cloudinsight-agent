@@ -1,0 +1,23 @@
+{
+	"db" : "local",
+	"collections" : 6,
+	"objects" : 30,
+	"avgObjSize" : 257.2,
+	"dataSize" : 7716,
+	"storageSize" : 1048608752,
+	"numExtents" : 8,
+	"indexes" : 3,
+	"indexSize" : 24528,
+	"fileSize" : 1089994752,
+	"nsSizeMB" : 16,
+	"extentFreeList" : {
+		"num" : 0,
+		"totalSize" : 0
+	},
+	"dataFileVersion" : {
+		"major" : 4,
+		"minor" : 22
+	},
+	"ok" : 1
+}
+

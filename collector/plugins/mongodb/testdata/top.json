@@ -1,0 +1,347 @@
+{
+    "ok": 1,
+    "totals": {
+        "admin.system.roles": {
+            "commands": {
+                "count": 0,
+                "time": 0
+            },
+            "getmore": {
+                "count": 0,
+                "time": 0
+            },
+            "insert": {
+                "count": 0,
+                "time": 0
+            },
+            "queries": {
+                "count": 1,
+                "time": 43
+            },
+            "readLock": {
+                "count": 1,
+                "time": 43
+            },
+            "remove": {
+                "count": 0,
+                "time": 0
+            },
+            "total": {
+                "count": 1,
+                "time": 43
+            },
+            "update": {
+                "count": 0,
+                "time": 0
+            },
+            "writeLock": {
+                "count": 0,
+                "time": 0
+            }
+        },
+        "admin.system.version": {
+            "commands": {
+                "count": 0,
+                "time": 0
+            },
+            "getmore": {
+                "count": 0,
+                "time": 0
+            },
+            "insert": {
+                "count": 0,
+                "time": 0
+            },
+            "queries": {
+                "count": 1,
+                "time": 10
+            },
+            "readLock": {
+                "count": 1,
+                "time": 10
+            },
+            "remove": {
+                "count": 0,
+                "time": 0
+            },
+            "total": {
+                "count": 1,
+                "time": 10
+            },
+            "update": {
+                "count": 0,
+                "time": 0
+            },
+            "writeLock": {
+                "count": 0,
+                "time": 0
+            }
+        },
+        "local.me": {
+            "commands": {
+                "count": 0,
+                "time": 0
+            },
+            "getmore": {
+                "count": 0,
+                "time": 0
+            },
+            "insert": {
+                "count": 0,
+                "time": 0
+            },
+            "queries": {
+                "count": 2,
+                "time": 19
+            },
+            "readLock": {
+                "count": 1089,
+                "time": 2432
+            },
+            "remove": {
+                "count": 0,
+                "time": 0
+            },
+            "total": {
+                "count": 1090,
+                "time": 2433
+            },
+            "update": {
+                "count": 0,
+                "time": 0
+            },
+            "writeLock": {
+                "count": 1,
+                "time": 1
+            }
+        },
+        "local.oplog.rs": {
+            "commands": {
+                "count": 2,
+                "time": 150422
+            },
+            "getmore": {
+                "count": 0,
+                "time": 0
+            },
+            "insert": {
+                "count": 0,
+                "time": 0
+            },
+            "queries": {
+                "count": 2,
+                "time": 30
+            },
+            "readLock": {
+                "count": 1090,
+                "time": 2645
+            },
+            "remove": {
+                "count": 0,
+                "time": 0
+            },
+            "total": {
+                "count": 1093,
+                "time": 153069
+            },
+            "update": {
+                "count": 0,
+                "time": 0
+            },
+            "writeLock": {
+                "count": 3,
+                "time": 150424
+            }
+        },
+        "local.replset.minvalid": {
+            "commands": {
+                "count": 0,
+                "time": 0
+            },
+            "getmore": {
+                "count": 0,
+                "time": 0
+            },
+            "insert": {
+                "count": 0,
+                "time": 0
+            },
+            "queries": {
+                "count": 0,
+                "time": 0
+            },
+            "readLock": {
+                "count": 2,
+                "time": 12
+            },
+            "remove": {
+                "count": 0,
+                "time": 0
+            },
+            "total": {
+                "count": 2,
+                "time": 12
+            },
+            "update": {
+                "count": 0,
+                "time": 0
+            },
+            "writeLock": {
+                "count": 0,
+                "time": 0
+            }
+        },
+        "local.startup_log": {
+            "commands": {
+                "count": 0,
+                "time": 0
+            },
+            "getmore": {
+                "count": 0,
+                "time": 0
+            },
+            "insert": {
+                "count": 0,
+                "time": 0
+            },
+            "queries": {
+                "count": 1,
+                "time": 6
+            },
+            "readLock": {
+                "count": 1088,
+                "time": 2699
+            },
+            "remove": {
+                "count": 0,
+                "time": 0
+            },
+            "total": {
+                "count": 1089,
+                "time": 2705
+            },
+            "update": {
+                "count": 0,
+                "time": 0
+            },
+            "writeLock": {
+                "count": 1,
+                "time": 6
+            }
+        },
+        "local.system.indexes": {
+            "commands": {
+                "count": 0,
+                "time": 0
+            },
+            "getmore": {
+                "count": 0,
+                "time": 0
+            },
+            "insert": {
+                "count": 0,
+                "time": 0
+            },
+            "queries": {
+                "count": 1,
+                "time": 1
+            },
+            "readLock": {
+                "count": 1088,
+                "time": 3711
+            },
+            "remove": {
+                "count": 0,
+                "time": 0
+            },
+            "total": {
+                "count": 1089,
+                "time": 3712
+            },
+            "update": {
+                "count": 0,
+                "time": 0
+            },
+            "writeLock": {
+                "count": 1,
+                "time": 1
+            }
+        },
+        "local.system.namespaces": {
+            "commands": {
+                "count": 0,
+                "time": 0
+            },
+            "getmore": {
+                "count": 0,
+                "time": 0
+            },
+            "insert": {
+                "count": 0,
+                "time": 0
+            },
+            "queries": {
+                "count": 1,
+                "time": 1
+            },
+            "readLock": {
+                "count": 1088,
+                "time": 2647
+            },
+            "remove": {
+                "count": 0,
+                "time": 0
+            },
+            "total": {
+                "count": 1089,
+                "time": 2648
+            },
+            "update": {
+                "count": 0,
+                "time": 0
+            },
+            "writeLock": {
+                "count": 1,
+                "time": 1
+            }
+        },
+        "local.system.replset": {
+            "commands": {
+                "count": 0,
+                "time": 0
+            },
+            "getmore": {
+                "count": 0,
+                "time": 0
+            },
+            "insert": {
+                "count": 0,
+                "time": 0
+            },
+            "queries": {
+                "count": 2,
+                "time": 23668
+            },
+            "readLock": {
+                "count": 1089,
+                "time": 26157
+            },
+            "remove": {
+                "count": 0,
+                "time": 0
+            },
+            "total": {
+                "count": 1090,
+                "time": 26158
+            },
+            "update": {
+                "count": 0,
+                "time": 0
+            },
+            "writeLock": {
+                "count": 1,
+                "time": 1
+            }
+        }
+    }
+}

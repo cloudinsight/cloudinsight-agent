@@ -1,0 +1,296 @@
+{
+    "host" : "03340f511b97",
+    "version" : "3.0.6",
+    "process" : "mongod",
+    "pid" : 1,
+    "uptime" : 137,
+    "uptimeMillis" : 136944,
+    "uptimeEstimate" : 129,
+    "localTime" : "2016-12-29T14:12:20.252Z",
+    "asserts" : {
+        "regular" : 0,
+        "warning" : 0,
+        "msg" : 0,
+        "user" : 0,
+        "rollovers" : 0
+    },
+    "backgroundFlushing" : {
+        "flushes" : 2,
+        "total_ms" : 3,
+        "average_ms" : 1.5,
+        "last_ms" : 2,
+        "last_finished" : "2016-12-29T14:12:05.803Z"
+    },
+    "connections" : {
+        "current" : 1,
+        "available" : 419429,
+        "totalCreated" : 17
+    },
+    "cursors" : {
+        "note" : "deprecated, use server status metrics",
+        "clientCursors_size" : 0,
+        "totalOpen" : 0,
+        "pinned" : 0,
+        "totalNoTimeout" : 0,
+        "timedOut" : 0
+    },
+    "dur" : {
+        "commits" : 30,
+        "journaledMB" : 0,
+        "writeToDataFilesMB" : 0,
+        "compression" : 0,
+        "commitsInWriteLock" : 0,
+        "earlyCommits" : 0,
+        "timeMs" : {
+            "dt" : 3070,
+            "prepLogBuffer" : 0,
+            "writeToJournal" : 0,
+            "writeToDataFiles" : 0,
+            "remapPrivateView" : 0,
+            "commits" : 0,
+            "commitsInWriteLock" : 0
+        }
+    },
+    "extra_info" : {
+        "note" : "fields vary by platform",
+        "heap_usage_bytes" : 0,
+        "page_faults" : 205
+    },
+    "globalLock" : {
+        "totalTime" : 136412000,
+        "currentQueue" : {
+            "total" : 0,
+            "readers" : 0,
+            "writers" : 0
+        },
+        "activeClients" : {
+            "total" : 12,
+            "readers" : 0,
+            "writers" : 0
+        }
+    },
+    "locks" : {
+        "Global" : {
+            "acquireCount" : {
+                "r" : 1042,
+                "w" : 19,
+                "R" : 1,
+                "W" : 6
+            },
+            "acquireWaitCount" : {
+                "r" : 1,
+                "w" : 2
+            },
+            "timeAcquiringMicros" : {
+                "r" : 17891,
+                "w" : 35249
+            }
+        },
+        "MMAPV1Journal" : {
+            "acquireCount" : {
+                "r" : 505,
+                "w" : 41,
+                "R" : 1280
+            },
+            "acquireWaitCount" : {
+                "w" : 3,
+                "R" : 4
+            },
+            "timeAcquiringMicros" : {
+                "w" : 67,
+                "R" : 4809972
+            }
+        },
+        "Database" : {
+            "acquireCount" : {
+                "r" : 488,
+                "R" : 20,
+                "W" : 19
+            },
+            "acquireWaitCount" : {
+                "r" : 1
+            },
+            "timeAcquiringMicros" : {
+                "r" : 4
+            }
+        },
+        "Collection" : {
+            "acquireCount" : {
+                "R" : 461
+            }
+        },
+        "Metadata" : {
+            "acquireCount" : {
+                "R" : 12
+            }
+        },
+        "oplog" : {
+            "acquireCount" : {
+                "R" : 37
+            }
+        }
+    },
+    "network" : {
+        "bytesIn" : 3346,
+        "bytesOut" : 80491,
+        "numRequests" : 55
+    },
+    "opcounters" : {
+        "insert" : 0,
+        "query" : 1,
+        "update" : 0,
+        "delete" : 0,
+        "getmore" : 0,
+        "command" : 56
+    },
+    "opcountersRepl" : {
+        "insert" : 0,
+        "query" : 0,
+        "update" : 0,
+        "delete" : 0,
+        "getmore" : 0,
+        "command" : 0
+    },
+    "repl" : {
+        "setName" : "my_replica_set",
+        "setVersion" : 1,
+        "ismaster" : true,
+        "secondary" : false,
+        "hosts" : [
+            "172.17.0.2:27017"
+        ],
+        "primary" : "172.17.0.2:27017",
+        "me" : "172.17.0.2:27017",
+        "electionId" : "58651941676dc572bd512e4e",
+        "rbid" : 1413420
+    },
+    "storageEngine" : {
+        "name" : "mmapv1"
+    },
+    "writeBacksQueued" : false,
+    "mem" : {
+        "bits" : 64,
+        "resident" : 92,
+        "virtual" : 2343,
+        "supported" : true,
+        "mapped" : 1119,
+        "mappedWithJournal" : 2238
+    },
+    "metrics" : {
+        "commands" : {
+            "dbStats" : {
+                "failed" : 0,
+                "total" : 16
+            },
+            "getLog" : {
+                "failed" : 0,
+                "total" : 1
+            },
+            "isMaster" : {
+                "failed" : 0,
+                "total" : 18
+            },
+            "listDatabases" : {
+                "failed" : 0,
+                "total" : 4
+            },
+            "replSetGetStatus" : {
+                "failed" : 0,
+                "total" : 7
+            },
+            "serverStatus" : {
+                "failed" : 0,
+                "total" : 5
+            },
+            "top" : {
+                "failed" : 0,
+                "total" : 4
+            },
+            "whatsmyuri" : {
+                "failed" : 0,
+                "total" : 1
+            }
+        },
+        "cursor" : {
+            "timedOut" : 0,
+            "open" : {
+                "noTimeout" : 0,
+                "pinned" : 0,
+                "total" : 0
+            }
+        },
+        "document" : {
+            "deleted" : 0,
+            "inserted" : 0,
+            "returned" : 0,
+            "updated" : 0
+        },
+        "getLastError" : {
+            "wtime" : {
+                "num" : 0,
+                "totalMillis" : 0
+            },
+            "wtimeouts" : 0
+        },
+        "operation" : {
+            "fastmod" : 0,
+            "idhack" : 0,
+            "scanAndOrder" : 0,
+            "writeConflicts" : 0
+        },
+        "queryExecutor" : {
+            "scanned" : 0,
+            "scannedObjects" : 0
+        },
+        "record" : {
+            "moves" : 0
+        },
+        "repl" : {
+            "apply" : {
+                "batches" : {
+                    "num" : 0,
+                    "totalMillis" : 0
+                },
+                "ops" : 0
+            },
+            "buffer" : {
+                "count" : 0,
+                "maxSizeBytes" : 268435456,
+                "sizeBytes" : 0
+            },
+            "network" : {
+                "bytes" : 0,
+                "getmores" : {
+                    "num" : 0,
+                    "totalMillis" : 0
+                },
+                "ops" : 0,
+                "readersCreated" : 1
+            },
+            "preload" : {
+                "docs" : {
+                    "num" : 0,
+                    "totalMillis" : 0
+                },
+                "indexes" : {
+                    "num" : 0,
+                    "totalMillis" : 0
+                }
+            }
+        },
+        "storage" : {
+            "freelist" : {
+                "search" : {
+                    "bucketExhausted" : 0,
+                    "requests" : 0,
+                    "scanned" : 0
+                }
+            }
+        },
+        "ttl" : {
+            "deletedDocuments" : 0,
+            "passes" : 2
+        }
+    },
+    "ok" : 1
+}

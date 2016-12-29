@@ -1,0 +1,29 @@
+init_config:
+
+instances:
+  # Specify the MongoDB URI, with database to use for reporting (defaults to "admin")
+  # E.g. mongodb://oneapm:oneapm@localhost:27017/my-db
+  - server: mongodb://localhost:27017
+    # Time to wait on creating a MongoDB connection
+    # timeout: 30
+
+    # Custom tags
+    # tags: ["tag_key1:tag_value1", "tag_key2:tag_value2"]
+
+    # By default, the check collects a sample of metrics from MongoDB.
+    # The (optional) `additional_metrics` parameter instructs the check to collect additional
+    # metrics on specific topics.
+    # Available options are:
+    # * `durability` - Journaling-related operations and performance
+    # * `locks` - Locks
+    # * `metrics.commands` - Use of database commands
+    # * `tcmalloc` -  TCMalloc memory allocator
+    # * `top` - Usage statistics for each collection
+    # * `wiredtiger` - WiredTiger storage engine
+    # additional_metrics:
+    #   - durability
+    #   - locks
+    #   - metrics.commands
+    #   - tcmalloc
+    #   - top
+    #   - wiredtiger

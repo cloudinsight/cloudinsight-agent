@@ -1,0 +1,22 @@
+{
+    "set" : "my_replica_set",
+    "date" : "2016-12-29T14:10:19.756Z",
+    "myState" : 1,
+    "members" : [
+        {
+            "_id" : 0,
+            "name" : "172.17.0.2:27017",
+            "health" : 1,
+            "state" : 1,
+            "stateStr" : "PRIMARY",
+            "uptime" : 16,
+            "optime" : 1482996362,
+            "optimeDate" : "2016-12-29T07:26:02Z",
+            "electionTime" : 1483020609,
+            "electionDate" : "2016-12-29T14:10:09Z",
+            "configVersion" : 1,
+            "self" : true
+        }
+    ],
+    "ok" : 1
+}

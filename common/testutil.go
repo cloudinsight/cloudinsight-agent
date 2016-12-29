@@ -36,7 +36,7 @@ func AssertCheckWithMetrics(
 	tags []string,
 	delta ...float64,
 ) {
-	metricC := make(chan metric.Metric, 100)
+	metricC := make(chan metric.Metric, 1000)
 	defer close(metricC)
 	agg := MockAggregator(metricC)
 
@@ -65,7 +65,7 @@ func AssertCheckWithRateMetrics(
 	tags []string,
 	delta ...float64,
 ) {
-	metricC := make(chan metric.Metric, 100)
+	metricC := make(chan metric.Metric, 1000)
 	defer close(metricC)
 	agg := MockAggregator(metricC)
 
@@ -96,7 +96,7 @@ func AssertCheckWithLen(
 	checker Checker,
 	expectedMetrics int,
 ) {
-	metricC := make(chan metric.Metric, 100)
+	metricC := make(chan metric.Metric, 1000)
 	defer close(metricC)
 	agg := MockAggregator(metricC)
 
