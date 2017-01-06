@@ -9,5 +9,6 @@ import (
 	_ "github.com/cloudinsight/cloudinsight-agent/collector/plugins/nginx"
 	_ "github.com/cloudinsight/cloudinsight-agent/collector/plugins/phpfpm"
 	_ "github.com/cloudinsight/cloudinsight-agent/collector/plugins/postgres"
+	_ "github.com/cloudinsight/cloudinsight-agent/collector/plugins/redis"
 	_ "github.com/cloudinsight/cloudinsight-agent/collector/plugins/system"
 )
