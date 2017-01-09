@@ -1,5 +1,12 @@
 # Change Log
 
+## [v0.4.0](https://github.com/cloudinsight/cloudinsight-agent/tree/v0.4.0) (2016-01-09)
+
+### Features
+- 支持 MongoDB
+- 支持 Redis
+- 支持 Memcached
+
 ## [v0.3.0](https://github.com/cloudinsight/cloudinsight-agent/tree/v0.3.0) (2016-12-06)
 
 ### Features
