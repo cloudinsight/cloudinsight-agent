@@ -1,0 +1,9 @@
+init_config:
+
+instances:
+  - url: localhost  # url used to connect to the memcached instance
+    port: 11211
+    # socket: /var/run/memcached.sock # Server socket (overrides url and port)
+
+    # Custom tags
+    # tags: ["tag_key1:tag_value1", "tag_key2:tag_value2"]
