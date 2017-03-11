@@ -17,6 +17,7 @@ type Example struct {
 
 // Check XXX
 func (e *Example) Check(agg metric.Aggregator) error {
+	return nil
 }
 
 func init() {
