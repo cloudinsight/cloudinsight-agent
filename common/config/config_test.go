@@ -11,7 +11,7 @@ import (
 )
 
 func TestLoadConfig(t *testing.T) {
-	conf, err := NewConfig("testdata/cloudinsight-agent.conf")
+	conf, err := NewConfig("testdata/cloudinsight-agent.conf", nil)
 	assert.NoError(t, err)
 
 	expectedConf := &Config{
@@ -35,26 +35,26 @@ func TestLoadConfig(t *testing.T) {
 }
 
 func TestBadConfig(t *testing.T) {
-	_, err := NewConfig("testdata/cloudinsight-agent-bad.conf")
+	_, err := NewConfig("testdata/cloudinsight-agent-bad.conf", nil)
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "Failed to load the config file:")
 }
 
 func TestDefaultConfig(t *testing.T) {
-	_, err := NewConfig("testdata/cloudinsight-agent-default.conf")
+	_, err := NewConfig("testdata/cloudinsight-agent-default.conf", nil)
 	assert.Error(t, err)
 	assert.Equal(t, err.Error(), "LicenseKey must be specified in the config file.")
 }
 
 func TestGetForwarderAddr(t *testing.T) {
-	conf, _ := NewConfig("testdata/cloudinsight-agent.conf")
+	conf, _ := NewConfig("testdata/cloudinsight-agent.conf", nil)
 
 	expectedAddr := "localhost:9999"
 	assert.Equal(t, expectedAddr, conf.GetForwarderAddr())
 }
 
 func TestGetForwarderAddrWithNonLocalTraffic(t *testing.T) {
-	conf, _ := NewConfig("testdata/cloudinsight-agent.conf")
+	conf, _ := NewConfig("testdata/cloudinsight-agent.conf", nil)
 	conf.GlobalConfig.NonLocalTraffic = true
 
 	expectedAddr := ":9999"
@@ -62,21 +62,21 @@ func TestGetForwarderAddrWithNonLocalTraffic(t *testing.T) {
 }
 
 func TestGetForwarderAddrWithScheme(t *testing.T) {
-	conf, _ := NewConfig("testdata/cloudinsight-agent.conf")
+	conf, _ := NewConfig("testdata/cloudinsight-agent.conf", nil)
 
 	expectedAddr := "http://localhost:9999"
 	assert.Equal(t, expectedAddr, conf.GetForwarderAddrWithScheme())
 }
 
 func TestGetStatsdAddr(t *testing.T) {
-	conf, _ := NewConfig("testdata/cloudinsight-agent.conf")
+	conf, _ := NewConfig("testdata/cloudinsight-agent.conf", nil)
 
 	expectedAddr := "localhost:8125"
 	assert.Equal(t, expectedAddr, conf.GetStatsdAddr())
 }
 
 func TestGetStatsdAddrWithNonLocalTraffic(t *testing.T) {
-	conf, _ := NewConfig("testdata/cloudinsight-agent.conf")
+	conf, _ := NewConfig("testdata/cloudinsight-agent.conf", nil)
 	conf.GlobalConfig.NonLocalTraffic = true
 
 	expectedAddr := ":8125"
@@ -84,7 +84,7 @@ func TestGetStatsdAddrWithNonLocalTraffic(t *testing.T) {
 }
 
 func TestInitializeLogging(t *testing.T) {
-	conf, err := NewConfig("testdata/cloudinsight-agent.conf")
+	conf, err := NewConfig("testdata/cloudinsight-agent.conf", nil)
 	assert.NoError(t, err)
 	err = conf.InitializeLogging()
 	assert.NoError(t, err)
@@ -98,7 +98,7 @@ func TestInitializeLogging(t *testing.T) {
 }
 
 func TestInitializeLoggingFailed(t *testing.T) {
-	conf, err := NewConfig("testdata/cloudinsight-agent.conf")
+	conf, err := NewConfig("testdata/cloudinsight-agent.conf", nil)
 	assert.NoError(t, err)
 	conf.LoggingConfig.LogLevel = "wrong"
 	err = conf.InitializeLogging()
@@ -106,7 +106,7 @@ func TestInitializeLoggingFailed(t *testing.T) {
 }
 
 func TestGetHostname(t *testing.T) {
-	conf, err := NewConfig("testdata/cloudinsight-agent.conf")
+	conf, err := NewConfig("testdata/cloudinsight-agent.conf", nil)
 	assert.NoError(t, err)
 	assert.Equal(t, "test", conf.GetHostname())
 

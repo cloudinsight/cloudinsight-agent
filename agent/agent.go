@@ -140,6 +140,7 @@ func (a *Agent) Test() error {
 				return err
 			}
 
+			// Wait a second for collecting rate metrics.
 			time.Sleep(time.Second)
 			if err := plug.Check(agg); err != nil {
 				return err
