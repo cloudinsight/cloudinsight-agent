@@ -18,8 +18,9 @@ import (
 const VERSION = "0.4.0"
 
 // NewConfig creates a new instance of Config.
-func NewConfig(confPath string) (*Config, error) {
+func NewConfig(confPath string, pluginFilters []string) (*Config, error) {
 	c := &Config{}
+	c.pluginFilters = pluginFilters
 
 	err := c.LoadConfig(confPath)
 	if err != nil {
@@ -38,6 +39,7 @@ type Config struct {
 	GlobalConfig  GlobalConfig  `toml:"global"`
 	LoggingConfig LoggingConfig `toml:"logging"`
 	Plugins       []*plugin.RunningPlugin
+	pluginFilters []string
 }
 
 // GlobalConfig XXX
@@ -137,6 +139,9 @@ func (c *Config) LoadConfig(confPath string) error {
 }
 
 func (c *Config) addPlugin(name string, pluginConfig *plugin.Config) error {
+	if len(c.pluginFilters) > 0 && !util.StringInSlice(name, c.pluginFilters) {
+		return nil
+	}
 	checker, ok := collector.Plugins[name]
 	if !ok {
 		return fmt.Errorf("Undefined plugin: %s", name)

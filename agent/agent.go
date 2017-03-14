@@ -1,7 +1,9 @@
 package agent
 
 import (
+	"fmt"
 	"runtime"
+	"sort"
 	"sync"
 	"time"
 
@@ -109,6 +111,57 @@ func collectWithTimeout(
 // Test verifies that we can 'collect' from all Plugins with their configured
 // Config struct
 func (a *Agent) Test() error {
+	shutdown := make(chan struct{})
+	metricC := make(chan metric.Metric)
+	var metrics []string
+
+	// dummy receiver for the metric channel
+	var wg sync.WaitGroup
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+
+		for {
+			select {
+			case m := <-metricC:
+				metrics = append(metrics, m.String())
+			case <-shutdown:
+				return
+			}
+		}
+	}()
+
+	agg := NewAggregator(metricC, a.conf)
+	for _, rp := range a.conf.Plugins {
+		fmt.Println("------------------------------------")
+		for i, plug := range rp.Plugins {
+			fmt.Printf("* Plugin: %s\n", rp.Name)
+			if err := plug.Check(agg); err != nil {
+				return err
+			}
+
+			time.Sleep(time.Second)
+			if err := plug.Check(agg); err != nil {
+				return err
+			}
+			agg.Flush()
+
+			// Waiting for the metrics filled up
+			time.Sleep(time.Millisecond)
+
+			fmt.Printf("* Instance #%d, Collected %d metrics\n", i, len(metrics))
+			sort.Strings(metrics)
+			for _, m := range metrics {
+				fmt.Println("> " + m)
+			}
+			metrics = []string{}
+		}
+	}
+
+	close(shutdown)
+	wg.Wait()
+
+	fmt.Println("Done!")
 	return nil
 }
 

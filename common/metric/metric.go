@@ -105,6 +105,11 @@ func (m *Metric) IsExpired(timestamp, expirySeconds int64) bool {
 	return false
 }
 
+// String XXX
+func (m *Metric) String() string {
+	return fmt.Sprintf("%s %f %v", m.Name, m.Value, m.Tags)
+}
+
 // Format XXX
 func (m Metric) Format() interface{} {
 	if m.Formatter != nil {
