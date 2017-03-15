@@ -34,6 +34,12 @@ license_key = "*********************"
 $ ./bin/cloudinsight-agent
 ```
 
+更多用法, 见:
+
+```
+$ ./bin/cloudinsight-agent --help
+```
+
 ## 相关的资源
 
 Cloudinsight 探针深受以下项目的影响：

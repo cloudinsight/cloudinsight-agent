@@ -38,6 +38,12 @@ Run the agent in foreground:
 $ ./bin/cloudinsight-agent
 ```
 
+For more options, see:
+
+```
+$ ./bin/cloudinsight-agent --help
+```
+
 ## Related works
 
 I have been influenced by the following great works:
