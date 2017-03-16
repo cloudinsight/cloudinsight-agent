@@ -61,11 +61,11 @@ func TestPHPFPMCheck(t *testing.T) {
 
 	pf := PHPFPM{
 		StatusURL: fmt.Sprintf("%s/stub_status", ts.URL),
-		Tags:      []string{"phpfpm"},
+		Tags:      []string{"service:phpfpm"},
 	}
 	pf2 := PHPFPM{
 		StatusURL: fmt.Sprintf("%s/stub_status2", ts.URL),
-		Tags:      []string{"phpfpm"},
+		Tags:      []string{"service:phpfpm"},
 	}
 
 	fields := map[string]float64{
@@ -78,7 +78,7 @@ func TestPHPFPMCheck(t *testing.T) {
 	}
 	tags := []string{
 		"pool:www",
-		"phpfpm",
+		"service:phpfpm",
 	}
 	testutil.AssertCheckWithMetrics(t, pf.Check, 6, fields, tags)
 
@@ -89,7 +89,7 @@ func TestPHPFPMCheck(t *testing.T) {
 	}
 	tags = []string{
 		"pool:www",
-		"phpfpm",
+		"service:phpfpm",
 	}
 	testutil.AssertCheckWithRateMetrics(t, pf.Check, pf2.Check, 9, fields, tags)
 }

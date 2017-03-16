@@ -114,6 +114,7 @@ func (a *Agent) Test() error {
 	shutdown := make(chan struct{})
 	metricC := make(chan metric.Metric)
 	var metrics []string
+	var checkRate bool
 
 	// dummy receiver for the metric channel
 	var wg sync.WaitGroup
@@ -124,7 +125,9 @@ func (a *Agent) Test() error {
 		for {
 			select {
 			case m := <-metricC:
-				metrics = append(metrics, m.String())
+				if checkRate {
+					metrics = append(metrics, m.String())
+				}
 			case <-shutdown:
 				return
 			}
@@ -139,12 +142,15 @@ func (a *Agent) Test() error {
 			if err := plug.Check(agg); err != nil {
 				return err
 			}
+			agg.Flush()
 
 			// Wait a second for collecting rate metrics.
 			time.Sleep(time.Second)
+			fmt.Println("* Running 2nd iteration to capture rate metrics")
 			if err := plug.Check(agg); err != nil {
 				return err
 			}
+			checkRate = true
 			agg.Flush()
 
 			// Waiting for the metrics filled up

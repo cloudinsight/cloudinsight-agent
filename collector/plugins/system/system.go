@@ -308,7 +308,8 @@ func (s *Stats) collectDiskIOMetrics(agg metric.Aggregator) error {
 		} else if ioWriteCountDelta == 0 {
 			ioawait = ioReadTimeDelta
 		} else {
-			ioawait = float64(ioReadTimeDelta*ioReadCountDelta+ioWriteTimeDelta*ioWriteCountDelta) / float64(ioReadCountDelta+ioWriteCountDelta)
+			ioawait = float64(ioReadTimeDelta*ioReadCountDelta+
+				ioWriteTimeDelta*ioWriteCountDelta) / float64(ioReadCountDelta+ioWriteCountDelta)
 		}
 
 		agg.Add("gauge", metric.NewMetric("system.io.await", ioawait))

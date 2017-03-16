@@ -61,11 +61,11 @@ func TestApacheCheck(t *testing.T) {
 
 	a := Apache{
 		ApacheStatusURL: fmt.Sprintf("%s/stub_status", ts.URL),
-		Tags:            []string{"apache"},
+		Tags:            []string{"service:apache"},
 	}
 	a2 := Apache{
 		ApacheStatusURL: fmt.Sprintf("%s/stub_status2", ts.URL),
-		Tags:            []string{"apache"},
+		Tags:            []string{"service:apache"},
 	}
 
 	fields := map[string]float64{

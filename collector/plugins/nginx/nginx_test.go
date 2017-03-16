@@ -58,20 +58,20 @@ func TestNginxCheck(t *testing.T) {
 
 	n := &Nginx{
 		NginxStatusURL: fmt.Sprintf("%s/stub_status", ts.URL),
-		Tags:           []string{"nginx"},
+		Tags:           []string{"service:nginx"},
 	}
 	n2 := &Nginx{
 		NginxStatusURL: fmt.Sprintf("%s/stub_status2", ts.URL),
-		Tags:           []string{"nginx"},
+		Tags:           []string{"service:nginx"},
 	}
 
 	nt := &Nginx{
 		NginxStatusURL: fmt.Sprintf("%s/tengine_status", ts.URL),
-		Tags:           []string{"tengine"},
+		Tags:           []string{"service:tengine"},
 	}
 	nt2 := &Nginx{
 		NginxStatusURL: fmt.Sprintf("%s/tengine_status2", ts.URL),
-		Tags:           []string{"tengine"},
+		Tags:           []string{"service:tengine"},
 	}
 
 	nginxFields := map[string]float64{

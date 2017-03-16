@@ -531,6 +531,8 @@ func TestRate(t *testing.T) {
 	defer close(a.metrics)
 
 	a.Add("rate", NewMetric("my.rate", 10))
+	a.Flush()
+
 	time.Sleep(1 * time.Second)
 	a.Add("rate", NewMetric("my.rate", 40))
 	a.Flush()

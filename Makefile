@@ -13,7 +13,7 @@ style:
 	@echo ">> checking code style"
 	@! gofmt -d $(shell find . -path ./vendor -prune -o -name '*.go' -print) | grep '^'
 
-test: vet
+test:
 	@echo ">> running tests"
 	@$(GO) test -v -cover=true -short $(pkgs)
 
