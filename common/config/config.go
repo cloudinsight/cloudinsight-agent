@@ -127,6 +127,7 @@ func (c *Config) LoadConfig(confPath string) error {
 		}
 
 		filename := path.Base(file)
+		filename = strings.Split(filename, "\\")[len(strings.Split(filename, "\\"))-1]
 		pluginName := strings.Split(filename, ".")[0]
 		err = c.addPlugin(pluginName, pluginConfig)
 		if err != nil {
