@@ -1,5 +1,10 @@
 # Change Log
 
+## [v0.5.0](https://github.com/cloudinsight/cloudinsight-agent/tree/v0.5.0) (2016-03-17)
+
+### Features
+- 支持 Docker
+
 ## [v0.4.0](https://github.com/cloudinsight/cloudinsight-agent/tree/v0.4.0) (2016-01-09)
 
 ### Features
