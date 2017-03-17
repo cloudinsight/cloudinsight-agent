@@ -15,7 +15,7 @@ import (
 )
 
 // VERSION sets the agent version here.
-const VERSION = "0.4.0"
+const VERSION = "0.5.0"
 
 // NewConfig creates a new instance of Config.
 func NewConfig(confPath string, pluginFilters []string) (*Config, error) {
