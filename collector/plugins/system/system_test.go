@@ -34,7 +34,7 @@ func TestCollectSystemMetrics(t *testing.T) {
 	fields := map[string]float64{
 		"system.uptime": float64(hostinfo.Uptime),
 	}
-	testutil.AssertCheckWithMetrics(t, s.collectSystemMetrics, 1, fields, nil)
+	testutil.AssertCheckWithMetrics(t, s.collectSystemMetrics, 1, fields, nil, 1)
 }
 
 func TestCollectLoadMetrics(t *testing.T) {
