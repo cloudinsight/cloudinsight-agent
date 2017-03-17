@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/cloudinsight/cloudinsight-agent/common/log"
@@ -68,6 +69,8 @@ func NewAggregator(
 }
 
 type aggregator struct {
+	sync.Mutex
+
 	metrics              chan Metric
 	context              map[Context]Generator
 	interval             float64
@@ -142,6 +145,8 @@ func (agg *aggregator) Add(metricType string, m Metric) {
 		return
 	}
 
+	agg.Lock()
+	defer agg.Unlock()
 	ctx := m.context()
 	generator, ok := agg.context[ctx]
 	if !ok {

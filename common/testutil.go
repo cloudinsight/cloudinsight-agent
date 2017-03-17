@@ -115,26 +115,29 @@ func AssertContainsMetricWithTags(
 	tags []string,
 	delta ...float64,
 ) {
-	var actualValue float64
-	var deltaValue float64
+	var actualValue, deltaValue float64
+	var actualTags []string
 	if len(delta) > 0 {
 		deltaValue = delta[0]
 	}
 	for _, m := range metrics {
-		if m.Name == name && reflect.DeepEqual(m.Tags, tags) {
+		if m.Name == name {
+			actualTags = m.Tags
 			if value, ok := m.Value.(float64); ok {
 				actualValue = value
-				if (value >= expectedValue-deltaValue) && (value <= expectedValue+deltaValue) {
+			} else {
+				assert.Fail(t, fmt.Sprintf("Metric \"%s\" does not have type float64", name))
+			}
+			if reflect.DeepEqual(actualTags, tags) {
+				if (actualValue >= expectedValue-deltaValue) && (actualValue <= expectedValue+deltaValue) {
 					// Found the point, return without failing
 					return
 				}
-			} else {
-				assert.Fail(t, fmt.Sprintf("Metric \"%s\" does not have type float64", name))
 			}
 		}
 	}
 	msg := fmt.Sprintf(
-		"Could not find metric \"%s\" with requested tags %v of value %f, Actual: %f",
-		name, tags, expectedValue, actualValue)
+		"Could not find metric \"%s\" with requested tags %v of value %f, ActualValue: %f, ActualTags: %v",
+		name, tags, expectedValue, actualValue, actualTags)
 	assert.Fail(t, msg)
 }
