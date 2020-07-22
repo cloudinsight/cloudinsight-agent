@@ -94,10 +94,10 @@ latest_fork_usec:903
 migrate_cached_sockets:0
 
 # Replication
-role:master
-connected_slaves:1
-slave0:ip=172.17.0.3,port=6379,state=online,offset=53445,lag=1
-master_repl_offset:53445
+role:main
+connected_subordinates:1
+subordinate0:ip=172.17.0.3,port=6379,state=online,offset=53445,lag=1
+main_repl_offset:53445
 repl_backlog_active:1
 repl_backlog_size:1048576
 repl_backlog_first_byte_offset:2
@@ -223,7 +223,7 @@ func TestCollectMetrics(t *testing.T) {
 
 		// Network
 		"redis.net.clients":  3,
-		"redis.net.slaves":   1,
+		"redis.net.subordinates":   1,
 		"redis.net.rejected": 0,
 
 		// clients
@@ -259,9 +259,9 @@ func TestCollectMetrics(t *testing.T) {
 		// "redis.replication.sync":               0,
 		// "redis.replication.sync_left_bytes":    0,
 		"redis.replication.backlog_histlen":    53444,
-		"redis.replication.master_repl_offset": 53445,
-		// "redis.replication.slave_repl_offset":  0,
-		// "redis.replication.master_link_down_since_seconds": 0,
+		"redis.replication.main_repl_offset": 53445,
+		// "redis.replication.subordinate_repl_offset":  0,
+		// "redis.replication.main_link_down_since_seconds": 0,
 	}
 	tags := []string{"service:redis"}
 	for name, value := range fields {
@@ -280,7 +280,7 @@ func TestCollectMetrics(t *testing.T) {
 	}
 
 	// replication
-	tags = []string{"service:redis", "slave_ip:172.17.0.3", "slave_port:6379", "slave_id:0"}
+	tags = []string{"service:redis", "subordinate_ip:172.17.0.3", "subordinate_port:6379", "subordinate_id:0"}
 	testutil.AssertContainsMetricWithTags(t, metrics, "redis.replication.delay", 0, tags)
 
 	// keys
