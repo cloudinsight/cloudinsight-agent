@@ -53,7 +53,7 @@ var (
 
 		// Network
 		"connected_clients":    "redis.net.clients",
-		"connected_slaves":     "redis.net.slaves",
+		"connected_subordinates":     "redis.net.subordinates",
 		"rejected_connections": "redis.net.rejected",
 
 		// clients
@@ -85,12 +85,12 @@ var (
 		"used_memory_rss":         "redis.mem.rss",
 
 		// replication
-		"master_last_io_seconds_ago": "redis.replication.last_io_seconds_ago",
-		"master_sync_in_progress":    "redis.replication.sync",
-		"master_sync_left_bytes":     "redis.replication.sync_left_bytes",
+		"main_last_io_seconds_ago": "redis.replication.last_io_seconds_ago",
+		"main_sync_in_progress":    "redis.replication.sync",
+		"main_sync_left_bytes":     "redis.replication.sync_left_bytes",
 		"repl_backlog_histlen":       "redis.replication.backlog_histlen",
-		"master_repl_offset":         "redis.replication.master_repl_offset",
-		"slave_repl_offset":          "redis.replication.slave_repl_offset",
+		"main_repl_offset":         "redis.replication.main_repl_offset",
+		"subordinate_repl_offset":          "redis.replication.subordinate_repl_offset",
 	}
 
 	// RATES XXX
@@ -242,8 +242,8 @@ func (r *Redis) collectDBMetrics(key, value string, tags []string, agg metric.Ag
 }
 
 func (r *Redis) collectReplicaMetrics(lines, tags []string, agg metric.Aggregator) {
-	var masterDownSeconds, masterOffset, slaveOffset float64
-	var masterStatus, slaveID, ip, port string
+	var mainDownSeconds, mainOffset, subordinateOffset float64
+	var mainStatus, subordinateID, ip, port string
 	var err error
 	for _, line := range lines {
 		record := strings.SplitN(line, ":", 2)
@@ -252,20 +252,20 @@ func (r *Redis) collectReplicaMetrics(lines, tags []string, agg metric.Aggregato
 		}
 		key, value := record[0], record[1]
 
-		if key == "master_repl_offset" {
-			masterOffset, _ = strconv.ParseFloat(value, 64)
+		if key == "main_repl_offset" {
+			mainOffset, _ = strconv.ParseFloat(value, 64)
 		}
 
-		if key == "master_link_down_since_seconds" {
-			masterDownSeconds, _ = strconv.ParseFloat(value, 64)
+		if key == "main_link_down_since_seconds" {
+			mainDownSeconds, _ = strconv.ParseFloat(value, 64)
 		}
 
-		if key == "master_link_status" {
-			masterStatus = value
+		if key == "main_link_status" {
+			mainStatus = value
 		}
 
-		if re, _ := regexp.MatchString(`^slave\d+`, key); re {
-			slaveID = strings.TrimPrefix(key, "slave")
+		if re, _ := regexp.MatchString(`^subordinate\d+`, key); re {
+			subordinateID = strings.TrimPrefix(key, "subordinate")
 			kv := strings.SplitN(value, ",", 5)
 			if len(kv) != 5 {
 				continue
@@ -273,41 +273,41 @@ func (r *Redis) collectReplicaMetrics(lines, tags []string, agg metric.Aggregato
 
 			split := strings.Split(kv[0], "=")
 			if len(split) != 2 {
-				log.Warnf("Failed to parse slave ip. %s", err)
+				log.Warnf("Failed to parse subordinate ip. %s", err)
 				continue
 			}
 			ip = split[1]
 
 			split = strings.Split(kv[1], "=")
 			if err != nil {
-				log.Warnf("Failed to parse slave port. %s", err)
+				log.Warnf("Failed to parse subordinate port. %s", err)
 				continue
 			}
 			port = split[1]
 
 			split = strings.Split(kv[3], "=")
 			if err != nil {
-				log.Warnf("Failed to parse slave offset. %s", err)
+				log.Warnf("Failed to parse subordinate offset. %s", err)
 				continue
 			}
-			slaveOffset, _ = strconv.ParseFloat(split[1], 64)
+			subordinateOffset, _ = strconv.ParseFloat(split[1], 64)
 		}
 	}
 
-	delay := masterOffset - slaveOffset
-	slaveTags := append(tags, "slave_ip:"+ip, "slave_port:"+port, "slave_id:"+slaveID)
+	delay := mainOffset - subordinateOffset
+	subordinateTags := append(tags, "subordinate_ip:"+ip, "subordinate_port:"+port, "subordinate_id:"+subordinateID)
 	if delay >= 0 {
 		agg.Add("gauge", metric.Metric{
 			Name:  "redis.replication.delay",
 			Value: delay,
-			Tags:  slaveTags,
+			Tags:  subordinateTags,
 		})
 	}
 
-	if masterStatus != "" {
+	if mainStatus != "" {
 		agg.Add("gauge", metric.Metric{
-			Name:  "redis.replication.master_link_down_since_seconds",
-			Value: masterDownSeconds,
+			Name:  "redis.replication.main_link_down_since_seconds",
+			Value: mainDownSeconds,
 			Tags:  tags,
 		})
 	}

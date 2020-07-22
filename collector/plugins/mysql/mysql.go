@@ -306,8 +306,8 @@ var (
 	}
 
 	replicaVars = map[string]metric.Field{
-		"Seconds_Behind_Master": {"mysql.replication.seconds_behind_master", gauge},
-		"Slaves_connected":      {"mysql.replication.slaves_connected", count},
+		"Seconds_Behind_Main": {"mysql.replication.seconds_behind_main", gauge},
+		"Subordinates_connected":      {"mysql.replication.subordinates_connected", count},
 	}
 
 	syntheticVars = map[string]metric.Field{

@@ -144,8 +144,8 @@ Per second averages calculated from the last 11 seconds
 -----------------
 BACKGROUND THREAD
 -----------------
-srv_master_thread loops: 1 1_second, 1 sleeps, 0 10_second, 1 background, 1 flush
-srv_master_thread log flush and writes: 1
+srv_main_thread loops: 1 1_second, 1 sleeps, 0 10_second, 1 background, 1 flush
+srv_main_thread log flush and writes: 1
 ----------
 SEMAPHORES
 ----------
@@ -240,8 +240,8 @@ Per second averages calculated from the last 25 seconds
 -----------------
 BACKGROUND THREAD
 -----------------
-srv_master_thread loops: 552 srv_active, 0 srv_shutdown, 376657 srv_idle
-srv_master_thread log flush and writes: 377209
+srv_main_thread loops: 552 srv_active, 0 srv_shutdown, 376657 srv_idle
+srv_main_thread log flush and writes: 377209
 ----------
 SEMAPHORES
 ----------
@@ -438,7 +438,7 @@ func TestCollectMetrics(t *testing.T) {
 		"mysql.performance.threads_cached":          float64(1),
 		"mysql.performance.threads_connected":       float64(1),
 		"mysql.performance.threads_running":         float64(1),
-		// "mysql.replication.slave_running":           float64(0),
+		// "mysql.replication.subordinate_running":           float64(0),
 	}
 	tags := []string{"env:production"}
 	for name, value := range fields {

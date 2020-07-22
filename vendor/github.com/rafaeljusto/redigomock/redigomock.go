@@ -143,7 +143,7 @@ func (c *Conn) Clear() {
 // response or error is returned. If no registered command is found an error
 // is returned
 func (c *Conn) Do(commandName string, args ...interface{}) (reply interface{}, err error) {
-	// @whazzmaster: Ensures that a call to Do() flushes the command queue
+	// @whazzmain: Ensures that a call to Do() flushes the command queue
 	//
 	// The redigo package ensures that a call to Do() will flush any commands
 	// that were queued via the Send() method, however a call to Do() on the

@@ -449,7 +449,7 @@ func (m *MongoDB) collectReplSetGetStatus(session Session, tags *[]string, agg m
 		replSet := bson.M{}
 		var primary, current ReplSetMember
 
-		// find nodes: master and current node (ourself)
+		// find nodes: main and current node (ourself)
 		for _, member := range replStatus.Members {
 			if member.Self {
 				current = member
